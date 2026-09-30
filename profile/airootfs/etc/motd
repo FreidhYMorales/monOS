@@ -1,0 +1,5 @@
+Welcome to monOS live.
+
+Network: use the Plasma network applet or `nmcli` (NetworkManager).
+Live user: liveuser / password: monos (passwordless sudo).
+

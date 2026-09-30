@@ -1,0 +1,11 @@
+NAME="monOS"
+PRETTY_NAME="monOS"
+ID=monos
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;139;92;246"
+HOME_URL="https://example.com/monos"
+DOCUMENTATION_URL="https://example.com/monos/docs"
+SUPPORT_URL="https://example.com/monos/support"
+BUG_REPORT_URL="https://example.com/monos/issues"
+LOGO=monos

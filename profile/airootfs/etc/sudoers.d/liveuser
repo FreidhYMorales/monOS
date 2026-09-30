@@ -1,0 +1,3 @@
+# monOS live session: passwordless sudo for the live user.
+# The Calamares installer (later phase) must not copy this file to the target.
+liveuser ALL=(ALL) NOPASSWD: ALL

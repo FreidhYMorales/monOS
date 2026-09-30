@@ -1,0 +1,4 @@
+# System-wide KDE defaults for monOS.
+[General]
+TerminalApplication=kitty
+TerminalService=kitty.desktop

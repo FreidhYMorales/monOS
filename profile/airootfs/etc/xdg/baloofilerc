@@ -1,0 +1,3 @@
+# Disable Baloo file indexing system-wide (saves CPU/IO on the live medium).
+[Basic Settings]
+Indexing-Enabled=false

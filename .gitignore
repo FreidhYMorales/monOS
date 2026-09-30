@@ -1,0 +1,7 @@
+# Build artifacts
+out/
+work/
+*.iso
+
+# Local agent tooling cache
+.atl/
