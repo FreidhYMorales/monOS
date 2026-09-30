@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Launch the monOS installer (Calamares) as root from the live session.
+#
+# Usage: monos-install [--offline] [calamares options, e.g. -d for debug]
+#
+# - Runs Calamares through sudo (the live user has passwordless sudo) and
+#   passes only the variables it needs to reach the Plasma Wayland session;
+#   the Wayland socket is given as an absolute path so root can use it.
+# - Without internet access (or with --offline), the "netinstall" page is
+#   hidden: a copy of /etc/calamares/settings.conf without the netinstall
+#   step is bind-mounted over the original for the duration of the run.
+set -euo pipefail
+
+SETTINGS="/etc/calamares/settings.conf"
+OFFLINE_SETTINGS="/run/monos-installer/settings.offline.conf"
+
+force_offline=0
+if [[ "${1:-}" == "--offline" ]]; then
+    force_offline=1
+    shift
+fi
+
+has_internet() {
+    curl --silent --head --fail --max-time 6 --output /dev/null https://archlinux.org
+}
+
+bind_mounted=0
+cleanup() {
+    if ((bind_mounted)); then
+        sudo umount "${SETTINGS}" || true
+    fi
+}
+trap cleanup EXIT
+
+if ((force_offline)) || ! has_internet; then
+    echo ":: No internet connection: optional online software will not be offered."
+    sudo install -d -m 0755 /run/monos-installer
+    sed -E '/^[[:space:]]*-[[:space:]]*netinstall[[:space:]]*$/d' "${SETTINGS}" \
+        | sudo tee "${OFFLINE_SETTINGS}" >/dev/null
+    sudo mount --bind "${OFFLINE_SETTINGS}" "${SETTINGS}"
+    bind_mounted=1
+fi
+
+env_vars=(
+    "QT_QPA_PLATFORM=wayland;xcb"
+    "LANG=${LANG:-C.UTF-8}"
+)
+if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+    wayland_socket="${WAYLAND_DISPLAY}"
+    if [[ "${wayland_socket}" != /* ]]; then
+        wayland_socket="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/${wayland_socket}"
+    fi
+    env_vars+=("WAYLAND_DISPLAY=${wayland_socket}")
+fi
+[[ -n "${DISPLAY:-}" ]] && env_vars+=("DISPLAY=${DISPLAY}")
+[[ -n "${XAUTHORITY:-}" ]] && env_vars+=("XAUTHORITY=${XAUTHORITY}")
+[[ -n "${XDG_CURRENT_DESKTOP:-}" ]] && env_vars+=("XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP}")
+[[ -n "${XDG_SESSION_TYPE:-}" ]] && env_vars+=("XDG_SESSION_TYPE=${XDG_SESSION_TYPE}")
+
+sudo env "${env_vars[@]}" /usr/bin/calamares "$@"

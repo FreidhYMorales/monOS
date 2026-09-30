@@ -236,3 +236,23 @@ wget
 
 # --- Applications ---
 firefox
+
+# --- Installer (Calamares) ---
+# calamares, ckbcomp and yay-bin come from the local [monos] repository
+# (AUR packages built by aur/build.sh). The installer copies this live
+# root filesystem to disk, so everything below also ends up installed.
+calamares
+ckbcomp
+yay-bin
+
+# --- Installed system: kernels, boot and snapshots ---
+# linux-lts is a fallback kernel. mkarchiso copies every /boot/vmlinuz-* to
+# the ISO; the installer restores them from /usr/lib/modules (see
+# profile/airootfs/etc/calamares/scripts/monos-target-cleanup.sh).
+linux-lts
+os-prober
+snapper
+snap-pac
+grub-btrfs
+# grub-btrfsd (snapshot watcher) needs inotifywait
+inotify-tools

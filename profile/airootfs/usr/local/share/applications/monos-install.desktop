@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Install monOS
+GenericName=System Installer
+Comment=Install monOS on this computer
+Exec=/usr/local/bin/monos-install
+Icon=system-software-install
+Terminal=false
+StartupNotify=true
+Categories=System;
+Keywords=installer;calamares;install;system;

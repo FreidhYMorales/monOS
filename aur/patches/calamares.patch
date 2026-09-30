@@ -1,0 +1,30 @@
+diff --git a/PKGBUILD b/PKGBUILD
+index be5bf9e..e5a59e4 100644
+--- a/PKGBUILD
++++ b/PKGBUILD
+@@ -17,6 +17,8 @@ depends=(
+   'qt6-declarative'
+   'qt6-svg'
+   'yaml-cpp'
++  # monOS: Python job modules (unpackfs, mount, bootloader, packages, ...)
++  'python'
+ )
+ makedepends=(
+   'extra-cmake-modules'
+@@ -24,6 +26,8 @@ makedepends=(
+   'ninja'
+   'qt6-tools'
+   'qt6-translations'
++  # monOS: Python headers so the Python job modules get built
++  'python'
+ )
+ 
+ _pkgext="tar.gz"
+@@ -41,7 +45,6 @@ build() {
+     initramfs
+     initramfscfg
+     interactiveterminal
+-    packagechooser
+     packagechooserq
+     services-openrc
+   )

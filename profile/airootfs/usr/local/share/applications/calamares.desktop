@@ -1,0 +1,9 @@
+# monOS: hide the upstream Calamares launcher (/usr/share/applications/calamares.desktop,
+# which runs "pkexec calamares"). /usr/local/share comes first in XDG_DATA_DIRS,
+# so this entry shadows it. Use "Install monOS" (monos-install.desktop) instead.
+[Desktop Entry]
+Type=Application
+Name=Install System
+Exec=/usr/local/bin/monos-install
+NoDisplay=true
+Hidden=true

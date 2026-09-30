@@ -5,3 +5,8 @@ work/
 
 # Local agent tooling cache
 .atl/
+
+# AUR build checkouts and the local pacman repository (binaries).
+# The repository will be published to GitHub Releases, not committed.
+aur/src/
+localrepo/

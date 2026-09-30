@@ -1,0 +1,57 @@
+# monOS optional software groups (official Arch repositories only).
+# Every group is unselected by default and non-critical: a package that fails
+# to install is logged and skipped instead of aborting the installation.
+#
+# Not available in the official repositories (install later with yay):
+#   - android-studio (AUR)
+#   - redis (replaced in the official repositories by valkey, a drop-in fork)
+- name: "IDEs"
+  description: "JetBrains IDEs (community editions)"
+  selected: false
+  critical: false
+  packages:
+    - intellij-idea-community-edition
+    - pycharm-community-edition
+
+- name: "Databases"
+  description: "Database servers and a universal database client"
+  selected: false
+  critical: false
+  packages:
+    - postgresql
+    - mariadb
+    - valkey
+    - dbeaver
+
+- name: "Virtualization"
+  description: "QEMU/KVM with libvirt and virt-manager"
+  selected: false
+  critical: false
+  packages:
+    - qemu-desktop
+    - libvirt
+    - virt-manager
+    - dnsmasq
+    - edk2-ovmf
+    - swtpm
+
+- name: "Office"
+  description: "LibreOffice (latest feature release)"
+  selected: false
+  critical: false
+  packages:
+    - libreoffice-fresh
+
+- name: "Extras"
+  description: ".NET, PHP, Ruby, Kubernetes tools, OBS Studio and GIMP"
+  selected: false
+  critical: false
+  packages:
+    - dotnet-sdk
+    - php
+    - composer
+    - ruby
+    - kubectl
+    - minikube
+    - obs-studio
+    - gimp

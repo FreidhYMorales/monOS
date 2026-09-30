@@ -1,0 +1,43 @@
+# monOS branding for Calamares 3.4.x.
+# Colors match the logo: dark background #0d0f14, accent blue #0C6BFA.
+---
+componentName:  monos
+
+welcomeStyleCalamares:   true
+welcomeExpandingLogo:    true
+
+windowExpanding:    normal
+windowSize:         960px,640px
+windowPlacement:    center
+
+sidebar:    widget
+navigation: widget
+
+strings:
+    productName:         monOS
+    shortProductName:    monOS
+    version:             rolling
+    shortVersion:        rolling
+    versionedName:       monOS (rolling)
+    shortVersionedName:  monOS
+    # Used for GRUB_DISTRIBUTOR (grubcfg) and the boot menu entry name.
+    bootloaderEntryName: monOS
+    productUrl:          https://github.com/FreidhYMorales/monOS
+    supportUrl:          https://github.com/FreidhYMorales/monOS
+    knownIssuesUrl:      https://github.com/FreidhYMorales/monOS/issues
+    releaseNotesUrl:     ""
+    donateUrl:           ""
+
+images:
+    productIcon:         "logo.png"
+    productLogo:         "logo.png"
+    productWelcome:      "logo.png"
+
+style:
+    SidebarBackground:        "#0d0f14"
+    SidebarText:              "#e5e7eb"
+    SidebarTextCurrent:       "#ffffff"
+    SidebarBackgroundCurrent: "#0C6BFA"
+
+slideshow:      "show.qml"
+slideshowAPI:   2

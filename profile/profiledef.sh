@@ -27,4 +27,10 @@ file_permissions=(
   ["/usr/local/bin/choose-mirror"]="0:0:755"
   ["/usr/local/bin/Installation_guide"]="0:0:755"
   ["/usr/local/bin/livecd-sound"]="0:0:755"
+  # Installer (Calamares) launcher and helper scripts.
+  # /home/liveuser/Desktop/monos-install.desktop gets 1000:1000:750 through
+  # the recursive "/home/liveuser/" entry (executable, so Plasma trusts it).
+  ["/usr/local/bin/monos-install"]="0:0:755"
+  ["/etc/calamares/scripts/monos-target-cleanup.sh"]="0:0:755"
+  ["/etc/calamares/scripts/monos-snapper-setup.sh"]="0:0:755"
 )
