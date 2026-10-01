@@ -1,0 +1,28 @@
+# remove from airootfs!
+# monOS: subordinate user/group IDs for liveuser, needed by rootless Podman
+# (and distrobox on top of it) on the live session.
+#
+# /etc/subuid and /etc/subgid are owned by the filesystem package, so they
+# cannot be shipped in airootfs (mkarchiso copies airootfs before pacstrap and
+# pacman refuses to overwrite them). liveuser is defined in airootfs
+# (/etc/passwd), not created with useradd, so it gets no range automatically.
+# The range is useradd's first one (SUB_UID_MIN/SUB_GID_MIN 100000,
+# SUB_*_COUNT 65536 in /etc/login.defs). The edits are idempotent.
+# On the installed system the installer deletes liveuser together with these
+# lines (monos-target-cleanup.sh); the user Calamares creates with useradd gets
+# its own range from login.defs.
+# Like the other build-only hooks, zzzz99-remove-custom-hooks-from-airootfs
+# deletes this file at the end of the transaction.
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = filesystem
+
+[Action]
+Description = Adding subordinate IDs for liveuser (rootless Podman)...
+When = PostTransaction
+Depends = sh
+Depends = grep
+Exec = /bin/sh -c 'for f in /etc/subuid /etc/subgid; do /usr/bin/grep -q "^liveuser:" "$f" || echo "liveuser:100000:65536" >> "$f" || exit 1; done'

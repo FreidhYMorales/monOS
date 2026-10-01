@@ -110,11 +110,47 @@ VIRTUAL_DESKTOPS = 4
 # shortcuts while loaded), so monos-tiling-toggle enables/disables the KWin
 # script. Meta+T is taken by KWin's tiles editor and Krohnkite's Tile Layout.
 TILING_TOGGLE_SHORTCUT = "Meta+Shift+T"
+# Krohnkite gaps (screen edges and between tiles), equal to the Klassy window
+# corner radius (PANEL_RADIUS, defined above).
+TILING_GAP = PANEL_RADIUS
+# Krohnkite layouts: position in the "next/previous layout" cycle, 0 = disabled.
+# Every layout of Krohnkite 0.9.9.2 is listed so the disabled ones are explicit.
+KROHNKITE_LAYOUTS = {
+    "tileLayoutOrder": 1,  # master + stack (default)
+    "monocleLayoutOrder": 2,  # one window at a time, full size
+    "columnsLayoutOrder": 3,  # side-by-side columns (wide screens)
+    "floatingLayoutOrder": 4,  # float everything on this desktop
+    "threeColumnLayoutOrder": 0,
+    "spiralLayoutOrder": 0,
+    "quarterLayoutOrder": 0,
+    "stackedLayoutOrder": 0,
+    "spreadLayoutOrder": 0,
+    "stairLayoutOrder": 0,
+    "binaryTreeLayoutOrder": 0,
+    "cascadeLayoutOrder": 0,
+}
+# Windows Krohnkite never manages (matched case-insensitively against the
+# resource class and name; "[text]" matches a substring). Setting ignoreClass
+# replaces Krohnkite's built-in list, so that list comes first.
+KROHNKITE_IGNORE_CLASS = [
+    # Krohnkite 0.9.9.2 defaults (contents/config/main.xml).
+    "krunner", "yakuake", "spectacle", "kded5", "xwaylandvideobridge", "plasmashell",
+    "ksplashqml", "org.kde.plasmashell", "org.kde.polkit-kde-authentication-agent-1",
+    "org.kde.kruler", "kruler", "kwin_wayland", "ksmserver-logout-greeter",
+    # Wayland app ids of the same tools, the installer, KDE Connect pop-ups,
+    # GnuPG pinentry and any polkit authentication agent.
+    "org.kde.krunner", "org.kde.spectacle", "org.kde.yakuake", "calamares",
+    "org.kde.kdeconnect.daemon", "[pinentry]", "[polkit]",
+]
 # Application launch shortcuts (Plasma 6 "services" components of kglobalaccel).
 # Dolphin already ships X-KDE-Shortcuts=Meta+E in org.kde.dolphin.desktop.
+# Konsole is only installed for Dolphin's terminal panel (konsolepart, F4): its
+# Ctrl+Alt+T (X-KDE-Shortcuts in /usr/share/kglobalaccel/org.kde.konsole.desktop)
+# is turned off and kitty, the default terminal, takes it.
 APP_SHORTCUTS = {
-    "kitty.desktop": "Meta+Return",
+    "kitty.desktop": "Meta+Return\\tCtrl+Alt+T",
     "firefox.desktop": "Meta+B",
+    "org.kde.konsole.desktop": "none",
 }
 # KWin receives Meta+Shift+<digit> as Meta+<shifted symbol of the layout>
 # (Xkb::modifiersRelevantForGlobalShortcuts drops the consumed Shift), so the
@@ -2281,6 +2317,10 @@ def desktop_id(index: int) -> str:
 def gen_kwin() -> None:
     """System-wide KWin and input defaults (/etc/xdg is in KWin's config cascade)."""
     desktops = "\n".join(f"Id_{i}={desktop_id(i)}" for i in range(1, VIRTUAL_DESKTOPS + 1))
+    layouts = "\n".join(f"{key}={order}" for key, order in KROHNKITE_LAYOUTS.items())
+    gaps = "\n".join(
+        f"screenGap{side}={TILING_GAP}" for side in ("Left", "Right", "Top", "Bottom", "Between")
+    )
     kwinrc = f"""{header('#', 'System-wide KWin defaults for monOS (users can override everything).')}
 [org.kde.kdecoration2]
 library={DECORATION_LIBRARY}
@@ -2292,6 +2332,26 @@ blurEnabled=true
 # {TILING_TOGGLE_SHORTCUT} (monos-tiling-toggle) or System Settings > Window
 # Management > KWin Scripts.
 krohnkiteEnabled=false
+
+# Krohnkite settings (KWin keeps each script's settings in [Script-<id>]; the
+# keys are the entries of Krohnkite's contents/config/main.xml). Read when the
+# script starts; System Settings > KWin Scripts > Krohnkite writes user
+# overrides to ~/.config/kwinrc.
+[Script-krohnkite]
+# Gaps match the {PANEL_RADIUS}px Klassy window corner radius. Tiled windows keep
+# their decoration and Klassy's accent outline on the active one.
+{gaps}
+noTileBorder=false
+{layouts}
+# New windows join the end of the stack (0 last, 1 master, 2 after master).
+newWindowPosition=0
+# Dialogs, splash screens and utility windows float (Krohnkite default);
+# floating windows stay above tiled ones (layer 0 bottom, 1 normal, 2 top).
+floatUtility=true
+tiledWindowsLayer=0
+floatedWindowsLayer=1
+preventMinimize=false
+ignoreClass={",".join(KROHNKITE_IGNORE_CLASS)}
 
 # Lighter than Plasma's default (15): fewer blur passes, cheaper in VMs.
 [Effect-blur]
@@ -2474,6 +2534,29 @@ ViewMode=1
 HiddenFilesShown=true
 """
     write(SKEL / ".local" / "share" / "dolphin" / "view_properties" / "global" / ".directory", view)
+
+    # Dolphin's terminal panel (F4) embeds Konsole's KPart (konsolepart, only
+    # in the konsole package) and cannot use another terminal. Konsole is
+    # installed for it but hidden from the launcher and KRunner: this file has
+    # the same desktop-file id as /usr/share/applications/org.kde.konsole.desktop
+    # and /usr/local/share comes first in XDG_DATA_DIRS. kitty stays the default
+    # terminal (kdeglobals TerminalApplication/TerminalService).
+    konsole = f"""[Desktop Entry]
+# {GEN_NOTE}
+# Hidden copy of Konsole's launcher: Konsole is only installed for Dolphin's
+# terminal panel (F4). Run "konsole" to start it anyway.
+Type=Application
+Name=Konsole
+GenericName=Terminal
+Comment=Terminal used by Dolphin's terminal panel
+TryExec=konsole
+Exec=konsole
+Icon=utilities-terminal
+Categories=Qt;KDE;System;TerminalEmulator;
+StartupWMClass=konsole
+NoDisplay=true
+"""
+    write(AIROOTFS / "usr" / "local" / "share" / "applications" / "org.kde.konsole.desktop", konsole)
 
 
 # --------------------------------------------------------------------------

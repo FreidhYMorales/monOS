@@ -1,0 +1,25 @@
+# remove from airootfs!
+# monOS: reflector options for the weekly mirrorlist refresh (reflector.timer,
+# enabled on the installed system by Calamares' services-systemd module).
+#
+# /etc/xdg/reflector/reflector.conf is owned by the reflector package, so it
+# cannot be shipped in airootfs (mkarchiso copies airootfs before pacstrap and
+# pacman refuses to overwrite it). Its defaults already save to
+# /etc/pacman.d/mirrorlist over HTTPS only; this hook replaces
+# "--latest 5 / --sort age" with the 20 most recently synchronized mirrors
+# sorted by download rate. The edits are idempotent. The installed system is a
+# copy of the live root filesystem and keeps them.
+# Like the other build-only hooks, zzzz99-remove-custom-hooks-from-airootfs
+# deletes this file at the end of the transaction.
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = reflector
+
+[Action]
+Description = Setting the monOS reflector options...
+When = PostTransaction
+Depends = sed
+Exec = /usr/bin/sed -i -E -e "s/^--latest[[:space:]]+[0-9]+[[:space:]]*$/--latest 20/" -e "s/^--sort[[:space:]]+[a-z]+[[:space:]]*$/--sort rate/" /etc/xdg/reflector/reflector.conf

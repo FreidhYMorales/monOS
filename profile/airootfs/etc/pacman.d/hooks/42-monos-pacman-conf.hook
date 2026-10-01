@@ -1,0 +1,26 @@
+# remove from airootfs!
+# monOS: pacman defaults in /etc/pacman.conf ([options]): 10 parallel
+# downloads, colored output, one package per line in transaction summaries
+# (VerbosePkgLists) and the Pac-Man progress bar (ILoveCandy).
+#
+# /etc/pacman.conf is owned by the pacman package, so it cannot be shipped in
+# airootfs (mkarchiso copies airootfs before pacstrap and pacman refuses to
+# overwrite it). The edits are idempotent. The installed system is a copy of
+# the live root filesystem and keeps them; pacman.conf is a backup file, so
+# later pacman upgrades leave it alone (a .pacnew is written instead).
+# Like the other build-only hooks, zzzz99-remove-custom-hooks-from-airootfs
+# deletes this file at the end of the transaction.
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = pacman
+
+[Action]
+Description = Setting the monOS pacman.conf options...
+When = PostTransaction
+Depends = sh
+Depends = sed
+Depends = grep
+Exec = /bin/sh -c '/usr/bin/sed -i -E -e "s/^#?[[:space:]]*ParallelDownloads[[:space:]]*=.*$/ParallelDownloads = 10/" -e "s/^#[[:space:]]*Color[[:space:]]*$/Color/" -e "s/^#[[:space:]]*VerbosePkgLists[[:space:]]*$/VerbosePkgLists/" /etc/pacman.conf && { /usr/bin/grep -qx "ILoveCandy" /etc/pacman.conf || /usr/bin/sed -i -e "/^Color$/a ILoveCandy" /etc/pacman.conf; }'

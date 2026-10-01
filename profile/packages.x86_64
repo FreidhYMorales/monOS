@@ -178,6 +178,11 @@ plasma-browser-integration
 # OpenGL 3.3 and fails in VMs without 3D acceleration.
 kitty
 foot
+# Konsole is not a monOS terminal: it provides the KPart (konsolepart) that
+# Dolphin's terminal panel (F4) embeds. Its launcher is hidden
+# (/usr/local/share/applications/org.kde.konsole.desktop) and kitty takes its
+# Ctrl+Alt+T shortcut.
+konsole
 
 # --- Hardware / system support ---
 networkmanager
@@ -257,6 +262,11 @@ go
 rustup
 docker
 docker-compose
+# Rootless containers and distrobox (any distro's userland in a container,
+# integrated with the home directory); both coexist with Docker. distrobox
+# prefers podman when both are installed.
+podman
+distrobox
 code
 neovim
 helix
@@ -354,5 +364,7 @@ os-prober
 snapper
 snap-pac
 grub-btrfs
+# GUI for btrfs subvolumes, Snapper snapshots (browse, restore) and balance/scrub
+btrfs-assistant
 # grub-btrfsd (snapshot watcher) needs inotifywait
 inotify-tools

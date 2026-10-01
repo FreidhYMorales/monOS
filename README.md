@@ -218,11 +218,43 @@ Plasma it ships:
 | Multimedia | gst-plugin-pipewire, gst-libav |
 | Drivers | intel-media-driver, thermald, nvidia-open, nvidia-open-lts, nvidia-utils, libva-nvidia-driver |
 | Applications | obsidian |
+| Containers | docker + docker-compose, podman + distrobox (see [Containers](#containers)) |
+| Snapshots | snapper, snap-pac, grub-btrfs, btrfs-assistant (GUI: subvolumes, Snapper snapshots, balance/scrub) |
+| Dolphin terminal panel | konsole (only for the F4 panel, see below) |
 
 Not included: `cups-pdf` (the Qt, GTK and Firefox print dialogs already print
 to PDF), `system-config-printer` (print-manager is the KDE tool),
 `nvidia-settings` (mostly X11 settings; `nvidia-smi` covers monitoring on
 Wayland) and 32-bit NVIDIA libraries (no multilib).
+
+Dolphin's terminal panel (F4) embeds Konsole's KPart (`konsolepart`, shipped
+only in the `konsole` package) and cannot use another terminal, so Konsole is
+installed but hidden: `/usr/local/share/applications/org.kde.konsole.desktop`
+overrides its launcher with `NoDisplay=true`, and its Ctrl+Alt+T shortcut is
+given to kitty (`/etc/skel/.config/kglobalshortcutsrc`). kitty stays the
+default terminal (`TerminalApplication` in `/etc/xdg/kdeglobals`).
+
+Flatpak: Arch's `flatpak` package already ships
+`/usr/share/flatpak/remotes.d/flathub.flatpakrepo`, which flatpak adds as the
+system-wide `flathub` remote on first use, so Discover lists Flathub
+applications without any setup (installing them needs internet access).
+
+pacman (`/etc/pacman.conf`, set at build time by the pacman hook
+`42-monos-pacman-conf.hook` because the file belongs to the pacman package):
+`ParallelDownloads = 10`, `Color`, `VerbosePkgLists` and `ILoveCandy`.
+
+### Containers
+
+Docker (socket-activated, your user is in `docker`) and rootless Podman are
+both installed; they do not conflict. `distrobox` runs other distributions'
+userlands in containers that share your home directory (`distrobox create -i
+ubuntu:24.04`, then `distrobox enter`); it uses Podman when both are present.
+Rootless Podman needs subordinate user/group ID ranges: the installer creates
+your user with `useradd`, which adds them to `/etc/subuid` and `/etc/subgid`
+(`SUB_UID_*`/`SUB_GID_*` in `/etc/login.defs`); on the live session `liveuser`
+gets them from the pacman hook `42-monos-liveuser-subids.hook`. For users
+created otherwise, run `sudo usermod --add-subuids 100000-165535
+--add-subgids 100000-165535 <user>` (with a free range) and `podman system migrate`.
 
 ### NVIDIA
 
@@ -295,6 +327,8 @@ mkinitcpio-nfs-utils (removing it would rebuild every initramfs once more).
 | Unit | Live | Installed | Notes |
 |------|------|-----------|-------|
 | `cups.socket` | yes | yes | printing, started on demand |
+| `NetworkManager-wait-online.service` | no | no | disabled: nothing at boot needs `network-online.target`, and when something pulls that target in, it waits up to 60 s for a connection; Calamares disables it again after enabling NetworkManager (whose `[Install]` has `Also=NetworkManager-wait-online.service`) |
+| `reflector.timer` | no | yes | weekly mirrorlist refresh: the 20 most recently synchronized HTTPS mirrors sorted by download rate (`/etc/xdg/reflector/reflector.conf`, edited at build time by the pacman hook `42-monos-reflector-conf.hook`) |
 | `ufw.service` | yes | yes | `ENABLED=yes` is set in `/etc/ufw/ufw.conf` at build time (pacman hook `41-monos-ufw-enable.hook`, the file belongs to the ufw package); default policy deny incoming, allow outgoing |
 | `thermald.service` | yes | Intel CPUs only | skipped in VMs (`ConditionVirtualization=no`) |
 | VM guest tools | yes | matching hypervisor only | units have virtualization conditions |
@@ -332,7 +366,7 @@ the installed system.
 |------|------|----------------------------|
 | KDE Plasma | Global Themes `org.monos.desktop` (monOS, default: MonosDark colors, Bibata-Modern-Ice cursor, Orbit wallpaper) and `org.monos.desktop.light` (monOS Light: MonosLight colors, Bibata-Modern-Classic cursor, Daylight wallpaper); both with Yamis monochrome icons (Papirus-Dark fallback), Klassy style and window decoration, the monOS splash and [panel layout B](#desktop-layout); wallpapers monOS Orbit, Nebula and Daylight | `/etc/xdg/kdeglobals` (`LookAndFeelPackage`, `DefaultDarkLookAndFeel`, `DefaultLightLookAndFeel`, colors, fonts, icons, style, animation speed), `/etc/xdg/ksplashrc`, `/etc/xdg/kscreenlockerrc`; Plasma applies the Global Theme defaults and its panel layout at a user's first login |
 | Klassy | rounded windows (radius 8), title bar in the window color without separator, round buttons with the monOS accent on hover/press, accent outline on the active window, slightly translucent menus | `/etc/xdg/klassy/klassyrc` (Klassy reads it as defaults; Klassy Settings writes user overrides to `~/.config/klassy/klassyrc`) |
-| KWin | Klassy decoration, blur (lighter than Plasma's default), animations at 0.7x duration, 4 virtual desktops in one row, Night Light on (sunset/sunrise schedule), Krohnkite installed but off | `/etc/xdg/kwinrc`, `/etc/xdg/kdeglobals` (`AnimationDurationFactor`) |
+| KWin | Klassy decoration, blur (lighter than Plasma's default), animations at 0.7x duration, 4 virtual desktops in one row, Night Light on (sunset/sunrise schedule), Krohnkite installed but off (when on: 8 px gaps, Tile/Monocle/Columns/Floating layouts, dialogs float, installer/KRunner/Spectacle/pinentry/polkit windows ignored; `[Script-krohnkite]`) | `/etc/xdg/kwinrc`, `/etc/xdg/kdeglobals` (`AnimationDurationFactor`) |
 | Cursor | Bibata-Modern-Ice, 24 px, for Plasma, GTK apps and the SDDM greeter (monOS Light switches Plasma to Bibata-Modern-Classic) | `/etc/xdg/kcminputrc` (also synced to GTK by kde-gtk-config at login), Global Theme defaults, `/etc/sddm.conf.d/10-monos-theme.conf` |
 | Shortcuts | see the table below | `/etc/skel/.config/kglobalshortcutsrc` (new users), `X-KDE-Shortcuts` in `/usr/local/share/applications/monos-tiling-toggle.desktop` (all users) |
 | Dolphin | details view, hidden files shown, editable location bar with the full path, full path in the title bar | `/etc/xdg/dolphinrc`, `/etc/skel/.local/share/dolphin/view_properties/global/.directory` |
@@ -349,7 +383,7 @@ Default shortcuts:
 
 | Shortcut | Action |
 |----------|--------|
-| Meta+Return | kitty |
+| Meta+Return, Ctrl+Alt+T | kitty |
 | Meta+E | Dolphin (Plasma default) |
 | Meta+B | Firefox |
 | Meta+1 .. Meta+4 | switch to virtual desktop 1..4 (Meta+F1..F4 and Ctrl+F1..F4 still work) |

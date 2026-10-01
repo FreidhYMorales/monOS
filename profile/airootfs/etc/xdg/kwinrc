@@ -13,6 +13,41 @@ blurEnabled=true
 # Management > KWin Scripts.
 krohnkiteEnabled=false
 
+# Krohnkite settings (KWin keeps each script's settings in [Script-<id>]; the
+# keys are the entries of Krohnkite's contents/config/main.xml). Read when the
+# script starts; System Settings > KWin Scripts > Krohnkite writes user
+# overrides to ~/.config/kwinrc.
+[Script-krohnkite]
+# Gaps match the 8px Klassy window corner radius. Tiled windows keep
+# their decoration and Klassy's accent outline on the active one.
+screenGapLeft=8
+screenGapRight=8
+screenGapTop=8
+screenGapBottom=8
+screenGapBetween=8
+noTileBorder=false
+tileLayoutOrder=1
+monocleLayoutOrder=2
+columnsLayoutOrder=3
+floatingLayoutOrder=4
+threeColumnLayoutOrder=0
+spiralLayoutOrder=0
+quarterLayoutOrder=0
+stackedLayoutOrder=0
+spreadLayoutOrder=0
+stairLayoutOrder=0
+binaryTreeLayoutOrder=0
+cascadeLayoutOrder=0
+# New windows join the end of the stack (0 last, 1 master, 2 after master).
+newWindowPosition=0
+# Dialogs, splash screens and utility windows float (Krohnkite default);
+# floating windows stay above tiled ones (layer 0 bottom, 1 normal, 2 top).
+floatUtility=true
+tiledWindowsLayer=0
+floatedWindowsLayer=1
+preventMinimize=false
+ignoreClass=krunner,yakuake,spectacle,kded5,xwaylandvideobridge,plasmashell,ksplashqml,org.kde.plasmashell,org.kde.polkit-kde-authentication-agent-1,org.kde.kruler,kruler,kwin_wayland,ksmserver-logout-greeter,org.kde.krunner,org.kde.spectacle,org.kde.yakuake,calamares,org.kde.kdeconnect.daemon,[pinentry],[polkit]
+
 # Lighter than Plasma's default (15): fewer blur passes, cheaper in VMs.
 [Effect-blur]
 BlurStrength=8

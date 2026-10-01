@@ -21,7 +21,10 @@ activate task manager entry 3=none,Meta+3,Activate Task Manager Entry 3
 activate task manager entry 4=none,Meta+4,Activate Task Manager Entry 4
 
 [services][kitty.desktop]
-_launch=Meta+Return
+_launch=Meta+Return\tCtrl+Alt+T
 
 [services][firefox.desktop]
 _launch=Meta+B
+
+[services][org.kde.konsole.desktop]
+_launch=none

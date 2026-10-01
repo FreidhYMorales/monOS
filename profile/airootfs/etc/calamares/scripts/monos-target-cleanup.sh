@@ -63,6 +63,15 @@ for f in "${live_files[@]}"; do
     rm -f -- "${ROOT:?}/${f}"
 done
 rm -rf -- "${ROOT:?}/usr/local/share/livecd-sound" "${ROOT:?}/etc/calamares"
+# liveuser's subordinate IDs (rootless Podman on the live session, added at
+# ISO build time by a pacman hook). removeuser's userdel normally drops them
+# too; deleting them here frees the first range (100000) for the user that
+# Calamares creates with useradd.
+for f in etc/subuid etc/subgid; do
+    if [[ -f "${ROOT}/${f}" ]]; then
+        sed -i -e '/^liveuser:/d' -- "${ROOT}/${f}"
+    fi
+done
 rmdir --ignore-fail-on-non-empty -- "${ROOT:?}/usr/local/lib/monos" 2>/dev/null || true
 
 # archiso presets (linux.preset only builds the "archiso" image).
