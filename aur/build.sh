@@ -23,6 +23,10 @@ set -euo pipefail
 # installed on the ISO).
 # plasma6-applets-panel-colorizer compiles a small C++ QML plugin: its build
 # needs libplasma (and cmake/extra-cmake-modules), which makepkg -s installs.
+# plasma6-applets-kara (top bar virtual desktops) also compiles a C++ QML
+# plugin, against kwin, plasma-workspace (libtaskmanager) and libplasma.
+# plasma6-applets-window-title is plain QML (no build step); makepkg still
+# wants its runtime dependency, plasma-workspace, on the build host.
 AUR_PACKAGES=(
     ckbcomp
     calamares
@@ -32,6 +36,8 @@ AUR_PACKAGES=(
     bibata-cursor-theme-bin
     kwin-scripts-krohnkite
     plasma6-applets-panel-colorizer
+    plasma6-applets-kara
+    plasma6-applets-window-title
 )
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

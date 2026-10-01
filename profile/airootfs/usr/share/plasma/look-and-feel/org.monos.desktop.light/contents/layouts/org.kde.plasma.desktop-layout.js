@@ -10,7 +10,10 @@
 // floating, centered dock that moves out of the way of windows. The islands
 // and the dock surface are drawn by Panel Colorizer (third-party widget,
 // AUR plasma6-applets-panel-colorizer); without it both panels keep Plasma's
-// own translucent background.
+// own translucent background. The virtual desktops are shown by Kara
+// (third-party widget, AUR plasma6-applets-kara); without it the stock pager
+// takes its place. The active window's icon and name come from Window Title
+// (third-party widget, AUR plasma6-applets-window-title), skipped if missing.
 
 // Wallpaper on every desktop.
 var allDesktops = desktops();
@@ -54,18 +57,84 @@ bar.lengthMode = "fill";
 bar.opacity = "translucent";
 bar.height = 2 * Math.ceil(gridUnit);
 
-// Island 1: launcher and virtual desktops.
+// Island 1: launcher, virtual desktops and the active window.
 var kickoff = bar.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
 kickoff.writeConfig("icon", "monos-small");
 
-// Virtual desktops (4, see /etc/xdg/kwinrc) labelled 1-4. displayedText:
-// 0 Number, 1 Name, 2 None (pager main.xml); no window outlines or icons.
-var pager = bar.addWidget("org.kde.plasma.pager");
-pager.currentConfigGroup = ["General"];
-pager.writeConfig("displayedText", 0);
-pager.writeConfig("showWindowOutlines", false);
-pager.writeConfig("showWindowIcons", false);
+// Virtual desktops (4, see /etc/xdg/kwinrc), GNOME style with Kara: the
+// active desktop is a 28 px accent pill, the others 8 px dots in
+// the text color at half opacity; size changes animate. Click a dot or
+// scroll over the widget to switch desktops (scrolling wraps around).
+// Keys and groups: package/contents/config/main.xml of Kara 1.0.0. Pill
+// corners: t1radius tenths of the height (5 = fully round). Without Kara
+// the stock pager is used, labelled 1-4 (pager main.xml displayedText:
+// 0 Number, 1 Name, 2 None; no window outlines or icons).
+if (fileExists("/usr/share/plasma/plasmoids/org.dhruv8sh.kara/metadata.json")) {
+    var kara = bar.addWidget("org.dhruv8sh.kara");
+    kara.currentConfigGroup = ["general"];
+    kara.writeConfig("type", 0);               // 0 Pill, 1 Text, 2 Icon
+    kara.writeConfig("highlightType", 0);      // no highlight behind the pills
+    kara.writeConfig("spacing", 6);
+    kara.writeConfig("animationDuration", 200);
+    kara.writeConfig("wrapOn", true);
+    kara.currentConfigGroup = ["appearance"];
+    kara.writeConfig("showOnlyActive", false); // a dot for every desktop
+    kara.writeConfig("plasmaTxtColors", true); // dots: color scheme text color
+    kara.writeConfig("defaultAltTextColors", false);
+    kara.writeConfig("altColor", "12,107,250"); // active pill: monOS blue (Selection)
+    kara.currentConfigGroup = ["type1"];
+    kara.writeConfig("t1radius", 5);
+    kara.writeConfig("t1width", 8);
+    kara.writeConfig("t1height", 8);
+    kara.writeConfig("t1activeWidth", 28);
+    kara.writeConfig("t1activeHeight", 8);
+    kara.currentConfigGroup = ["type2"];
+    kara.writeConfig("pillDontChangeOp", false); // inactive dots at 50% opacity
+} else {
+    var pager = bar.addWidget("org.kde.plasma.pager");
+    pager.currentConfigGroup = ["General"];
+    pager.writeConfig("displayedText", 0);
+    pager.writeConfig("showWindowOutlines", false);
+    pager.writeConfig("showWindowIcons", false);
+}
+
+// Active window: its icon and application name (GNOME style), elided on the
+// right past 360 px, in the color scheme's text color (the widget's
+// Label uses Kirigami.Theme.textColor). Nothing is shown on the bare desktop
+// (empty altTxt, no fallback icon). Keys: contents/config/main.xml of
+// Window Title 0.9.0. lengthKind: 0 contents, 1 fixed, 2 maximum (fixedLength);
+// elidePos: 0 none, 1 left, 2 middle, 3 right; fontSize is in pixels
+// (13 px = the 10 pt UI font at 96 dpi). Double click maximizes; scrolling
+// (minimizes windows) and middle click (closes them) are off, so a stray
+// wheel or click next to the desktop dots does no harm. Skipped when the
+// widget is not installed.
+if (fileExists("/usr/share/plasma/plasmoids/org.kde.windowtitle/metadata.json")) {
+    var title = bar.addWidget("org.kde.windowtitle");
+    title.currentConfigGroup = ["Appearance"];
+    title.writeConfig("txt", "%a");          // %a app name, %w window title
+    title.writeConfig("txtSameFound", "%a");
+    title.writeConfig("altTxt", "");         // no active window: no text
+    title.writeConfig("noIcon", true);       // ... and no icon
+    title.writeConfig("activityIcon", false);
+    title.writeConfig("visible", true);      // app icon beside the name
+    title.writeConfig("customSize", 20);     // icon size, px
+    title.writeConfig("fontSize", 13);
+    title.writeConfig("isBold", false);
+    title.writeConfig("lengthKind", 2);
+    title.writeConfig("fixedLength", 360);
+    title.writeConfig("elidePos", 3);
+    title.writeConfig("firstSpace", 4);
+    title.writeConfig("midSpace", 6);
+    title.writeConfig("lastSpace", 4);
+    title.currentConfigGroup = ["Behavior"];
+    title.writeConfig("filterByScreen", true);   // the active window of this screen
+    title.writeConfig("filterByMaximized", false);
+    title.writeConfig("showTooltip", true);      // full name on hover
+    title.writeConfig("maxminAllowed", true);
+    title.writeConfig("closeAllowed", false);
+    title.writeConfig("scrollAllowed", false);
+}
 
 // Two expanding spacers center the clock on the bar (panelspacer computes
 // equal sizes from the widgets on both sides) and split the islands.

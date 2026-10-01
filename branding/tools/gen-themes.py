@@ -64,6 +64,17 @@ CLOCK_DATE_FORMAT = "ddd d MMM\u2003\u2060"
 # from package/metadata.json; it draws the top bar islands and the dock
 # surface. Corner radius shared with Klassy's WindowCornerRadius.
 PANEL_COLORIZER = "luisbocanegra.panel.colorizer"
+# Kara (AUR plasma6-applets-kara, v1.0.0): virtual desktop switcher, widget id
+# from package/metadata.json. Its pill style ("type" 0) gives the GNOME look:
+# the active desktop is an elongated pill, the others small dots.
+KARA = "org.dhruv8sh.kara"
+# Dot diameter and active pill width, in px (sized for the ~36 px top bar).
+KARA_DOT = 8
+KARA_ACTIVE_W = 28
+# Window Title (AUR plasma6-applets-window-title, v0.9.0): widget id from
+# metadata.json. Longest the app name may get before it is elided, in px.
+WINDOW_TITLE = "org.kde.windowtitle"
+WINDOW_TITLE_MAX_W = 360
 PANEL_RADIUS = 8
 FIXED_FONT = "JetBrainsMono Nerd Font,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 # UI fonts: the "Propo" variant keeps Nerd icons at their natural width, which
@@ -1730,6 +1741,7 @@ def plasma_layout_js(p: Palette, wallpaper: str, theme_name: str, light: bool) -
     plasma-workspace 6.7.5, libksysguard 6.7.5 for the system monitor faces).
     """
     a = p.light_ansi if light else p.ansi
+    u = p.light_ui if light else p.ui
     launchers = ", ".join(f'"{app}"' for app in PINNED_APPS)
     bar_cfg = json.dumps(colorizer_settings("bar", light), indent=4, sort_keys=True)
     dock_cfg = json.dumps(colorizer_settings("dock", light), indent=4, sort_keys=True)
@@ -1745,7 +1757,10 @@ def plasma_layout_js(p: Palette, wallpaper: str, theme_name: str, light: bool) -
 // floating, centered dock that moves out of the way of windows. The islands
 // and the dock surface are drawn by Panel Colorizer (third-party widget,
 // AUR plasma6-applets-panel-colorizer); without it both panels keep Plasma's
-// own translucent background.
+// own translucent background. The virtual desktops are shown by Kara
+// (third-party widget, AUR plasma6-applets-kara); without it the stock pager
+// takes its place. The active window's icon and name come from Window Title
+// (third-party widget, AUR plasma6-applets-window-title), skipped if missing.
 
 // Wallpaper on every desktop.
 var allDesktops = desktops();
@@ -1789,18 +1804,84 @@ bar.lengthMode = "fill";
 bar.opacity = "translucent";
 bar.height = 2 * Math.ceil(gridUnit);
 
-// Island 1: launcher and virtual desktops.
+// Island 1: launcher, virtual desktops and the active window.
 var kickoff = bar.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
 kickoff.writeConfig("icon", "{KICKOFF_ICON}");
 
-// Virtual desktops (4, see /etc/xdg/kwinrc) labelled 1-4. displayedText:
-// 0 Number, 1 Name, 2 None (pager main.xml); no window outlines or icons.
-var pager = bar.addWidget("org.kde.plasma.pager");
-pager.currentConfigGroup = ["General"];
-pager.writeConfig("displayedText", 0);
-pager.writeConfig("showWindowOutlines", false);
-pager.writeConfig("showWindowIcons", false);
+// Virtual desktops (4, see /etc/xdg/kwinrc), GNOME style with Kara: the
+// active desktop is a {KARA_ACTIVE_W} px accent pill, the others {KARA_DOT} px dots in
+// the text color at half opacity; size changes animate. Click a dot or
+// scroll over the widget to switch desktops (scrolling wraps around).
+// Keys and groups: package/contents/config/main.xml of Kara 1.0.0. Pill
+// corners: t1radius tenths of the height (5 = fully round). Without Kara
+// the stock pager is used, labelled 1-4 (pager main.xml displayedText:
+// 0 Number, 1 Name, 2 None; no window outlines or icons).
+if (fileExists("/usr/share/plasma/plasmoids/{KARA}/metadata.json")) {{
+    var kara = bar.addWidget("{KARA}");
+    kara.currentConfigGroup = ["general"];
+    kara.writeConfig("type", 0);               // 0 Pill, 1 Text, 2 Icon
+    kara.writeConfig("highlightType", 0);      // no highlight behind the pills
+    kara.writeConfig("spacing", 6);
+    kara.writeConfig("animationDuration", 200);
+    kara.writeConfig("wrapOn", true);
+    kara.currentConfigGroup = ["appearance"];
+    kara.writeConfig("showOnlyActive", false); // a dot for every desktop
+    kara.writeConfig("plasmaTxtColors", true); // dots: color scheme text color
+    kara.writeConfig("defaultAltTextColors", false);
+    kara.writeConfig("altColor", "{kde_rgb(u['accent'])}"); // active pill: monOS blue (Selection)
+    kara.currentConfigGroup = ["type1"];
+    kara.writeConfig("t1radius", 5);
+    kara.writeConfig("t1width", {KARA_DOT});
+    kara.writeConfig("t1height", {KARA_DOT});
+    kara.writeConfig("t1activeWidth", {KARA_ACTIVE_W});
+    kara.writeConfig("t1activeHeight", {KARA_DOT});
+    kara.currentConfigGroup = ["type2"];
+    kara.writeConfig("pillDontChangeOp", false); // inactive dots at 50% opacity
+}} else {{
+    var pager = bar.addWidget("org.kde.plasma.pager");
+    pager.currentConfigGroup = ["General"];
+    pager.writeConfig("displayedText", 0);
+    pager.writeConfig("showWindowOutlines", false);
+    pager.writeConfig("showWindowIcons", false);
+}}
+
+// Active window: its icon and application name (GNOME style), elided on the
+// right past {WINDOW_TITLE_MAX_W} px, in the color scheme's text color (the widget's
+// Label uses Kirigami.Theme.textColor). Nothing is shown on the bare desktop
+// (empty altTxt, no fallback icon). Keys: contents/config/main.xml of
+// Window Title 0.9.0. lengthKind: 0 contents, 1 fixed, 2 maximum (fixedLength);
+// elidePos: 0 none, 1 left, 2 middle, 3 right; fontSize is in pixels
+// (13 px = the 10 pt UI font at 96 dpi). Double click maximizes; scrolling
+// (minimizes windows) and middle click (closes them) are off, so a stray
+// wheel or click next to the desktop dots does no harm. Skipped when the
+// widget is not installed.
+if (fileExists("/usr/share/plasma/plasmoids/{WINDOW_TITLE}/metadata.json")) {{
+    var title = bar.addWidget("{WINDOW_TITLE}");
+    title.currentConfigGroup = ["Appearance"];
+    title.writeConfig("txt", "%a");          // %a app name, %w window title
+    title.writeConfig("txtSameFound", "%a");
+    title.writeConfig("altTxt", "");         // no active window: no text
+    title.writeConfig("noIcon", true);       // ... and no icon
+    title.writeConfig("activityIcon", false);
+    title.writeConfig("visible", true);      // app icon beside the name
+    title.writeConfig("customSize", 20);     // icon size, px
+    title.writeConfig("fontSize", 13);
+    title.writeConfig("isBold", false);
+    title.writeConfig("lengthKind", 2);
+    title.writeConfig("fixedLength", {WINDOW_TITLE_MAX_W});
+    title.writeConfig("elidePos", 3);
+    title.writeConfig("firstSpace", 4);
+    title.writeConfig("midSpace", 6);
+    title.writeConfig("lastSpace", 4);
+    title.currentConfigGroup = ["Behavior"];
+    title.writeConfig("filterByScreen", true);   // the active window of this screen
+    title.writeConfig("filterByMaximized", false);
+    title.writeConfig("showTooltip", true);      // full name on hover
+    title.writeConfig("maxminAllowed", true);
+    title.writeConfig("closeAllowed", false);
+    title.writeConfig("scrollAllowed", false);
+}}
 
 // Two expanding spacers center the clock on the bar (panelspacer computes
 // equal sizes from the widgets on both sides) and split the islands.

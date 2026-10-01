@@ -67,6 +67,8 @@ and updates the repository database `localrepo/x86_64/monos.db.tar.gz`.
 | bibata-cursor-theme-bin | Bibata cursors (upstream release archive)                   |
 | kwin-scripts-krohnkite  | Krohnkite dynamic tiling KWin script (patched, see below)   |
 | plasma6-applets-panel-colorizer | Panel Colorizer: top bar islands and dock surface (third-party) |
+| plasma6-applets-kara    | Kara: GNOME-style virtual desktop switcher in the top bar (third-party) |
+| plasma6-applets-window-title | Window Title: active window icon and name in the top bar (third-party) |
 
 `klassy` is built from source rather than `klassy-bin`: the source package
 compiles against the Plasma/KDecoration version installed on the build host,
@@ -80,6 +82,18 @@ installed on the ISO.
 `plasma6-applets-panel-colorizer` also compiles a small C++ QML plugin
 (used for the blur behind the islands): its build needs `libplasma`,
 `cmake` and `extra-cmake-modules`, installed by `makepkg -s`.
+
+`plasma6-applets-kara` is the stable package (pinned to the upstream `v1.0.0`
+tag) rather than `plasma6-applets-kara-git`, which builds whatever upstream
+HEAD is at build time. It also compiles a C++ QML plugin, linked against
+`kwin`, `plasma-workspace` (libtaskmanager) and `libplasma`: those build
+dependencies are installed by `makepkg -s`, and like Klassy it should be
+rebuilt after a Plasma update.
+
+`plasma6-applets-window-title` is plain QML (release tarball with a
+checksum, no build step), but makepkg checks its runtime dependency
+`plasma-workspace`, so the build host needs it installed (`makepkg -s` does
+that).
 
 Run it as your normal user. `-s` installs missing build dependencies with
 `sudo pacman`, so it may ask for your password. If every build dependency is
@@ -370,7 +384,7 @@ widget's `main.xml` in plasma-desktop / plasma-workspace 6.7.5):
 
 | Panel | Settings | Widgets (left to right) |
 |-------|----------|-------------------------|
-| Top bar | `location = "top"`, floating, full width (`lengthMode = "fill"`), `hiding = "none"`, ~36 px (`2 * gridUnit`) | three islands: **launcher** (Kickoff with the monOS icon) and the **pager** (desktops labelled 1-4, no window outlines); the **clock** (`Thu 1 Oct   14:52`: date beside the time, 24-hour, calendar on click), centered by two expanding spacers; **CPU and RAM** as labelled text (`org.kde.plasma.systemmonitor`, text-only face, colored dots), the **system tray** and a **session** button (opens the logout screen: log out, restart, shut down) |
+| Top bar | `location = "top"`, floating, full width (`lengthMode = "fill"`), `hiding = "none"`, ~36 px (`2 * gridUnit`) | three islands: **launcher** (Kickoff with the monOS icon) and the **virtual desktops** (Kara: GNOME-style accent pill for the current desktop, dots for the others) and the **active window** (its icon and application name, Window Title); the **clock** (`Thu 1 Oct   14:52`: date beside the time, 24-hour, calendar on click), centered by two expanding spacers; **CPU and RAM** as labelled text (`org.kde.plasma.systemmonitor`, text-only face, colored dots), the **system tray** and a **session** button (opens the logout screen: log out, restart, shut down) |
 | Dock | `location = "bottom"`, floating, `lengthMode = "fit"`, `alignment = "center"`, `hiding = "dodgewindows"`, ~60 px thick (about 48 px icons) | **app grid** (Application Dashboard, `applications-all-symbolic` icon); separator; icon-only task manager pinned with kitty, Dolphin, Firefox, Code - OSS and Obsidian; separator; Trash |
 
 The task manager shows running indicators, badges and progress (Unity
@@ -400,8 +414,26 @@ script. The same settings are available as presets ("monOS Islands",
 (`~/.config/panel-colorizer/presets/`). If the widget breaks after a Plasma
 update, or is removed, the panels keep working with Plasma's own
 translucent background: only the extra styling is lost. The layout script
-skips the widget when it is not installed. The active desktop in the pager
-is highlighted by the Plasma theme (accent color), not by Panel Colorizer.
+skips the widget when it is not installed.
+
+**Kara** (AUR `plasma6-applets-kara`, a third-party widget) shows the
+virtual desktops GNOME-style: the current desktop is a 28 px pill in the
+monOS blue (the color scheme's selection color), every other desktop an
+8 px dot in the color scheme's text color at half opacity, with no
+numbers; on a switch the old pill shrinks to a dot and the new one grows
+(200 ms animation). Click a dot to switch to that desktop, or scroll over
+the widget to step through them (wrapping around). Its
+settings are written by the layout script (Kara's pill style, `type` 0).
+If Kara is not installed, the layout script uses Plasma's stock pager
+instead (desktops labelled 1-4, no window outlines).
+
+**Window Title** (AUR `plasma6-applets-window-title`, a third-party
+widget) follows Kara in the same island: the icon and application name of
+the active window on that screen, in the color scheme's text color,
+elided on the right past 360 px (the full name is in its tooltip). On the
+bare desktop it shows nothing. A double click maximizes or restores the
+window; its scroll (minimize) and middle-click (close) actions are turned
+off. The layout script skips it when it is not installed.
 
 The layout is applied at a user's first login. To get it again: System
 Settings > Colors & Themes > Global Theme > monOS (or monOS Light), check
