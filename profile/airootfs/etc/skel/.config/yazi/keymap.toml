@@ -1,0 +1,84 @@
+# ~/.config/yazi/keymap.toml - monOS key bindings, added in front of yazi's
+# defaults (prepend_keymap): every default key not listed here still works.
+# Press F1 or ~ in yazi for the full list.
+#
+# Defaults these keys replace: s (search with fd: use f f), f (filter),
+# 1-9 (switch to tab N: use Tab / Shift-Tab), Tab (spot/file info),
+# X (unyank: Y still works), Ctrl-S (cancel search: Esc still works).
+
+[mgr]
+prepend_keymap = [
+	# --- Navigation ---
+	# l / Right / Enter: enter a directory (skipping directories that only
+	# contain one directory) or open the file.
+	{ on = "l",       run = "plugin bypass smart-enter", desc = "Enter directory / open file (bypass)" },
+	{ on = "<Right>", run = "plugin bypass smart-enter", desc = "Enter directory / open file (bypass)" },
+	{ on = "<Enter>", run = "plugin bypass smart-enter", desc = "Enter directory / open file (bypass)" },
+
+	# --- Sorting (directories first) ---
+	{ on = ["s", "n"], run = "sort natural --dir-first",                desc = "Sort: natural" },
+	{ on = ["s", "a"], run = "sort alphabetical --dir-first",           desc = "Sort: alphabetical" },
+	{ on = ["s", "m"], run = "sort mtime --dir-first --reverse",        desc = "Sort: modified (newest first)" },
+	{ on = ["s", "s"], run = "sort size --dir-first --reverse",         desc = "Sort: size (largest first)" },
+
+	# --- Tabs ---
+	{ on = "T",       run = "tab_create --current",     desc = "New tab in the current directory" },
+	{ on = "X",       run = "close",                    desc = "Close the current tab (quit if it is the last)" },
+	{ on = "<Tab>",   run = "tab_switch 1 --relative",  desc = "Next tab" },
+	{ on = "<S-Tab>", run = "tab_switch -1 --relative", desc = "Previous tab" },
+
+	# --- Shell ---
+	{ on = "!", run = 'shell "$SHELL" --block', desc = "Open a shell here (exit to return)" },
+
+	# --- clipboard: yank also copies the paths to the system clipboard ---
+	{ on = "y",     run = ["yank", "plugin clipboard -- --action=copy --notify-unknown-display-server"], desc = "Yank + copy to the system clipboard" },
+	{ on = "<C-p>", run = "plugin clipboard -- --action=paste",                                          desc = "Paste files from the system clipboard" },
+
+	# --- relative-motions: 1-9 start a motion (3j, 5k, ...) ---
+	{ on = "1", run = "plugin relative-motions 1", desc = "Move: count 1" },
+	{ on = "2", run = "plugin relative-motions 2", desc = "Move: count 2" },
+	{ on = "3", run = "plugin relative-motions 3", desc = "Move: count 3" },
+	{ on = "4", run = "plugin relative-motions 4", desc = "Move: count 4" },
+	{ on = "5", run = "plugin relative-motions 5", desc = "Move: count 5" },
+	{ on = "6", run = "plugin relative-motions 6", desc = "Move: count 6" },
+	{ on = "7", run = "plugin relative-motions 7", desc = "Move: count 7" },
+	{ on = "8", run = "plugin relative-motions 8", desc = "Move: count 8" },
+	{ on = "9", run = "plugin relative-motions 9", desc = "Move: count 9" },
+
+	# --- fg: search with ripgrep + fzf, jump to the result ---
+	{ on = ["f", "g"], run = "plugin fg",        desc = "Search file contents (fuzzy)" },
+	{ on = ["f", "G"], run = "plugin fg -- rg",  desc = "Search file contents (exact, ripgrep)" },
+	{ on = ["f", "f"], run = "plugin fg -- fzf", desc = "Search file names (fzf)" },
+
+	# --- gvfs: phones (MTP), network shares, ... ---
+	{ on = ["M", "m"], run = "plugin gvfs -- select-then-mount --jump",             desc = "GVFS: mount a device and jump to it" },
+	{ on = ["M", "u"], run = "plugin gvfs -- select-then-unmount --eject",          desc = "GVFS: unmount and eject" },
+	{ on = ["M", "U"], run = "plugin gvfs -- select-then-unmount --eject --force",  desc = "GVFS: force unmount and eject" },
+	{ on = ["M", "a"], run = "plugin gvfs -- add-mount",                            desc = "GVFS: add a mount URI" },
+	{ on = ["M", "e"], run = "plugin gvfs -- edit-mount",                           desc = "GVFS: edit a mount URI" },
+	{ on = ["M", "r"], run = "plugin gvfs -- remove-mount",                         desc = "GVFS: remove a mount URI" },
+	{ on = ["g", "m"], run = "plugin gvfs -- jump-to-device",                       desc = "GVFS: jump to a mounted device" },
+	{ on = ["`", "`"], run = "plugin gvfs -- jump-back-prev-cwd",                   desc = "GVFS: jump back to the previous directory" },
+
+	# --- mount: local disks and partitions (udisks2) ---
+	{ on = ["M", "M"], run = "plugin mount", desc = "Mount manager (local disks)" },
+
+	# --- mediainfo ---
+	{ on = "I", run = "plugin mediainfo -- toggle-metadata", desc = "Media preview: toggle metadata" },
+
+	# --- recycle-bin (trash-cli) ---
+	{ on = ["R", "b"], run = "plugin recycle-bin",            desc = "Trash: menu" },
+	{ on = ["R", "o"], run = "plugin recycle-bin -- open",    desc = "Trash: open" },
+	{ on = ["R", "r"], run = "plugin recycle-bin -- restore", desc = "Trash: restore" },
+	{ on = ["R", "d"], run = "plugin recycle-bin -- delete",  desc = "Trash: delete permanently" },
+	{ on = ["R", "e"], run = "plugin recycle-bin -- empty",   desc = "Trash: empty" },
+
+	# --- what-size ---
+	{ on = "<C-s>", run = "plugin what-size", desc = "Size of the selection or the current directory" },
+
+	# --- ouch ---
+	{ on = "C", run = "plugin ouch", desc = "Compress the selection (ouch)" },
+
+	# --- lazygit ---
+	{ on = ["g", "i"], run = "plugin lazygit", desc = "lazygit in the current directory" },
+]

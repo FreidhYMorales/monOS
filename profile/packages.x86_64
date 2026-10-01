@@ -237,6 +237,29 @@ fastfetch
 mpv
 curl
 wget
+# Zsh plugins (sourced from /usr/share/zsh/plugins, no plugin manager)
+zsh-autosuggestions
+zsh-syntax-highlighting
+zsh-completions
+# Shell history search (Ctrl-R, local only) and per-directory .envrc
+atuin
+direnv
+# yazi previewers and plugin dependencies (see etc/skel/.config/yazi):
+# glow (Markdown), hexyl (binaries), mediainfo (media metadata), 7zip and
+# poppler (archives/PDF), imagemagick and resvg (images/SVG/fonts),
+# trash-cli (recycle-bin plugin), wl-clipboard (clipboard plugin),
+# gvfs + gvfs-mtp (gvfs plugin: phones and network shares)
+glow
+hexyl
+mediainfo
+7zip
+poppler
+imagemagick
+resvg
+trash-cli
+wl-clipboard
+gvfs
+gvfs-mtp
 
 # --- Applications ---
 firefox

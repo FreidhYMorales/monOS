@@ -2,7 +2,7 @@
 // Source: branding/palette/monos.toml
 // monOS fastfetch configuration: ASCII-art logo, works in every terminal
 // (kitty, foot, the Linux console, SSH). In kitty, `fastfetch -c monos-kitty`
-// shows the logo as an image (kitty graphics protocol).
+// shows the logo as an image (kitty graphics protocol). Icons need a Nerd Font.
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   "logo": {
@@ -14,7 +14,8 @@
     },
     "padding": {
       "left": 1,
-      "right": 3
+      "right": 3,
+      "top": 2
     }
   },
   "display": {
@@ -25,54 +26,114 @@
       "separator": "#7D8699"
     },
     "key": {
-      "width": 10
+      "width": 16
     }
   },
   "modules": [
-    "title",
-    "separator",
+    {
+      "type": "custom",
+      "format": "┌──────────────────────────────────────────┐",
+      "outputColor": "#2E3440"
+    },
+    {
+      "type": "chassis",
+      "key": "  󰇺 Chassis",
+      "keyColor": "#22C3E6",
+      "format": "{type}"
+    },
     {
       "type": "os",
-      "key": "OS"
+      "key": "  󰣇 OS",
+      "keyColor": "#3D8BFF",
+      "format": "{pretty-name} {arch}"
     },
     {
       "type": "kernel",
-      "key": "Kernel"
+      "key": "   Kernel",
+      "keyColor": "#3D8BFF",
+      "format": "{release}"
     },
     {
       "type": "packages",
-      "key": "Packages"
+      "key": "  󰏗 Packages",
+      "keyColor": "#3FD68A"
     },
     {
-      "type": "shell",
-      "key": "Shell"
-    },
-    {
-      "type": "de",
-      "key": "DE"
+      "type": "display",
+      "key": "  󰍹 Display",
+      "keyColor": "#3FD68A",
+      "format": "{width}x{height} @ {refresh-rate}Hz"
     },
     {
       "type": "terminal",
-      "key": "Terminal"
+      "key": "   Terminal",
+      "keyColor": "#F5C451"
+    },
+    {
+      "type": "de",
+      "key": "   DE",
+      "keyColor": "#F5C451"
+    },
+    {
+      "type": "custom",
+      "format": "└──────────────────────────────────────────┘",
+      "outputColor": "#2E3440"
+    },
+    "break",
+    {
+      "type": "title",
+      "key": "  ",
+      "format": "{user-name-colored}{at-symbol-colored}{host-name-colored}"
+    },
+    {
+      "type": "custom",
+      "format": "┌──────────────────────────────────────────┐",
+      "outputColor": "#2E3440"
     },
     {
       "type": "cpu",
-      "key": "CPU"
+      "key": "   CPU",
+      "keyColor": "#9B6BFF",
+      "format": "{name} @ {freq-max}"
     },
     {
       "type": "gpu",
-      "key": "GPU"
+      "key": "  󰊴 GPU",
+      "keyColor": "#9B6BFF",
+      "format": "{name}"
+    },
+    {
+      "type": "gpu",
+      "key": "   GPU Driver",
+      "keyColor": "#9B6BFF",
+      "format": "{driver}"
     },
     {
       "type": "memory",
-      "key": "Memory"
+      "key": "  󰍛 Memory",
+      "keyColor": "#22C3E6"
     },
     {
       "type": "disk",
-      "key": "Disk",
-      "folders": "/"
+      "key": "  󱦟 OS Age",
+      "keyColor": "#F2555A",
+      "folders": "/",
+      "format": "{days} days"
     },
-    "break",
-    "colors"
+    {
+      "type": "uptime",
+      "key": "  󱫐 Uptime",
+      "keyColor": "#F2555A"
+    },
+    {
+      "type": "custom",
+      "format": "└──────────────────────────────────────────┘",
+      "outputColor": "#2E3440"
+    },
+    {
+      "type": "colors",
+      "paddingLeft": 2,
+      "symbol": "circle"
+    }
   ]
 }

@@ -1,0 +1,70 @@
+# ~/.config/yazi/yazi.toml - monOS: yazi options, openers and previewers.
+# Only the differences from yazi's built-in defaults are listed.
+# Colors: theme.toml (generated). Plugins: init.lua, plugins/monos-plugins.txt.
+# Reference: https://yazi-rs.github.io/docs/configuration/yazi
+
+[mgr]
+ratio          = [1, 3, 4]   # parent / current / preview
+sort_by        = "natural"   # file2 before file10
+sort_sensitive = false
+sort_dir_first = true
+linemode       = "none"
+show_hidden    = false
+show_symlink   = true
+scrolloff      = 5
+
+[preview]
+tab_size      = 2
+max_width     = 1000
+max_height    = 1000
+image_filter  = "triangle"
+image_quality = 75
+
+[opener]
+edit = [
+	{ run = '${EDITOR:-vi} %s', desc = "$EDITOR", block = true, for = "unix" },
+]
+open = [
+	{ run = 'xdg-open %s1', desc = "Open (default application)", for = "linux" },
+]
+reveal = [
+	{ run = 'xdg-open %d1', desc = "Reveal in the file manager", for = "linux" },
+]
+extract = [
+	{ run = 'ouch decompress --yes %s', desc = "Extract here (ouch)", for = "unix" },
+]
+
+[open]
+prepend_rules = [
+	# Archives: extract with ouch
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,java-archive}", use = ["extract", "reveal"] },
+	# Text and code: $EDITOR first
+	{ mime = "text/*", use = ["edit", "open", "reveal"] },
+	{ mime = "application/{json,ndjson,toml,x-shellscript,javascript}", use = ["edit", "open", "reveal"] },
+	# Images, PDF, audio and video: the desktop's default application
+	{ mime = "image/*", use = ["open", "reveal"] },
+	{ mime = "application/pdf", use = ["open", "reveal"] },
+	{ mime = "{audio,video}/*", use = ["open", "play", "reveal"] },
+]
+
+[plugin]
+prepend_preloaders = [
+	# Removable drives and GVFS mounts (phones over MTP, network shares) are
+	# slow: no preloading there.
+	{ url = "/run/media/**/*", run = "noop" },
+	{ url = "/run/user/*/gvfs/**/*", run = "noop" },
+	# mediainfo plugin: cover/thumbnail plus metadata (I toggles the metadata)
+	{ mime = "{audio,video,image}/*", run = "mediainfo" },
+]
+prepend_previewers = [
+	{ url = "/run/media/**/*", run = "noop" },
+	{ url = "/run/user/*/gvfs/**/*", run = "noop" },
+	# Markdown rendered by glow
+	{ url = "*.md", run = 'piper -- CLICOLOR_FORCE=1 glow --width=$w --style=dark "$1"' },
+	# Archive contents listed by ouch
+	{ mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,java-archive}", run = "ouch" },
+	# Audio, video and images with metadata
+	{ mime = "{audio,video,image}/*", run = "mediainfo" },
+	# Binaries without a better previewer: hex dump (first 4 KiB)
+	{ mime = "application/{octet-stream,x-executable,x-pie-executable,x-sharedlib,x-object}", run = 'piper -- hexyl --border=none --terminal-width=$w --length=4KiB "$1"' },
+]

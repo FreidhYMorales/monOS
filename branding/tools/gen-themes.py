@@ -242,11 +242,31 @@ italic_font      auto
 bold_italic_font auto
 font_size        11.0
 
-window_padding_width 8
-background_opacity   0.95
+window_padding_width 6
 confirm_os_window_close 0
 enable_audio_bell no
 cursor_shape beam
+cursor_trail 1
+
+# Translucent background. background_blur enables the blur of the compositor
+# on Wayland when it supports the background blur protocol (KWin does); the
+# blur strength is then set by the compositor, not by this value.
+background_opacity 0.92
+background_blur    24
+
+# --- Tabs (bottom, slanted powerline; ":N:" = number of windows in a tab) ---
+tab_bar_edge        bottom
+tab_bar_style       powerline
+tab_powerline_style slanted
+tab_title_template  {{title}}{{' :{{}}:'.format(num_windows) if num_windows > 1 else ''}}
+
+# --- Remote control ---
+# Only through the per-instance socket below (kitten @, some image/preview
+# helpers), never through escape sequences printed by programs. Tradeoff: any
+# process of your user can control this kitty (open windows, send text).
+# Set allow_remote_control to no if you do not need it.
+allow_remote_control socket-only
+listen_on            unix:/tmp/kitty-{{kitty_pid}}
 
 # --- Colors ---
 foreground            {u['fg']}
@@ -466,6 +486,123 @@ chord   = {{ fg = "{x['cyan']}" }}
 hovered = {{ bg = "{u['selection']}", bold = true }}
 """
     write(SKEL_CFG / "yazi" / "theme.toml", content)
+    gen_yazi_init(p)
+
+
+def gen_yazi_init(p: Palette) -> None:
+    """yazi init.lua: plugin setup; the yatline bars use the monOS palette.
+
+    yazi.toml, keymap.toml and the vendored plugins in plugins/ are plain
+    files (no colors); see plugins/monos-plugins.txt.
+    """
+    u, x = p.ui, p.ansi
+    content = f"""{header('--')}-- monOS yazi plugin setup. Every plugin is vendored in ./plugins (pinned
+-- versions and licenses: plugins/monos-plugins.txt); nothing is downloaded.
+-- Plugins that only run from a key or as previewers (bypass, clipboard,
+-- lazygit, mediainfo, mount, ouch, piper) need no setup here.
+
+-- Full border around the three panes.
+require("full-border"):setup({{ type = ui.Border.PLAIN }})
+
+-- Header line (tabs, clock) and status line (mode, size, name, position,
+-- permissions) in the monOS colors.
+require("yatline"):setup({{
+\tsection_separator = {{ open = "\\u{{e0b6}}", close = "\\u{{e0b4}}" }},
+\tpart_separator = {{ open = "\\u{{e0b7}}", close = "\\u{{e0b5}}" }},
+\tinverse_separator = {{ open = "\\u{{e0d6}}", close = "\\u{{e0d7}}" }},
+\tpadding = {{ inner = 1, outer = 1 }},
+
+\tstyle_a = {{
+\t\tfg = "{u['accent-fg']}",
+\t\tbg_mode = {{ normal = "{u['accent']}", select = "{u['violet']}", un_set = "{x['red']}" }},
+\t}},
+\tstyle_b = {{ bg = "{u['overlay']}", fg = "{u['fg']}" }},
+\tstyle_c = {{ bg = "{u['surface2']}", fg = "{u['fg-dim']}" }},
+
+\tpermissions_t_fg = "{x['green']}",
+\tpermissions_r_fg = "{x['yellow']}",
+\tpermissions_w_fg = "{x['red']}",
+\tpermissions_x_fg = "{x['cyan']}",
+\tpermissions_s_fg = "{u['muted']}",
+
+\ttab_width = 20,
+
+\tselected = {{ icon = "\\u{{f0eed}}", fg = "{x['yellow']}" }},
+\tcopied = {{ icon = "\\u{{f4bb}}", fg = "{x['green']}" }},
+\tcut = {{ icon = "\\u{{f0c4}}", fg = "{x['red']}" }},
+\tfiles = {{ icon = "\\u{{f15b}}", fg = "{x['blue']}" }},
+\tfiltereds = {{ icon = "\\u{{f0b0}}", fg = "{x['magenta']}" }},
+
+\ttotal = {{ icon = "\\u{{f0b8d}}", fg = "{x['yellow']}" }},
+\tsuccess = {{ icon = "\\u{{f00c}}", fg = "{x['green']}" }},
+\tfailed = {{ icon = "\\u{{f00d}}", fg = "{x['red']}" }},
+
+\tshow_background = false,
+\tdisplay_header_line = true,
+\tdisplay_status_line = true,
+\tcomponent_positions = {{ "header", "tab", "status" }},
+
+\theader_line = {{
+\t\tleft = {{
+\t\t\tsection_a = {{ {{ type = "line", custom = false, name = "tabs", params = {{ "left" }} }} }},
+\t\t\tsection_b = {{}},
+\t\t\tsection_c = {{}},
+\t\t}},
+\t\tright = {{
+\t\t\tsection_a = {{ {{ type = "string", custom = false, name = "date", params = {{ "%H:%M" }} }} }},
+\t\t\tsection_b = {{}},
+\t\t\tsection_c = {{}},
+\t\t}},
+\t}},
+
+\tstatus_line = {{
+\t\tleft = {{
+\t\t\tsection_a = {{ {{ type = "string", custom = false, name = "tab_mode" }} }},
+\t\t\tsection_b = {{ {{ type = "string", custom = false, name = "hovered_size" }} }},
+\t\t\tsection_c = {{
+\t\t\t\t{{ type = "string", custom = false, name = "hovered_name" }},
+\t\t\t\t{{ type = "coloreds", custom = false, name = "count" }},
+\t\t\t}},
+\t\t}},
+\t\tright = {{
+\t\t\tsection_a = {{ {{ type = "string", custom = false, name = "cursor_position" }} }},
+\t\t\tsection_b = {{ {{ type = "string", custom = false, name = "cursor_percentage" }} }},
+\t\t\tsection_c = {{
+\t\t\t\t-- params = false: the icon variant calls the deprecated File:icon().
+\t\t\t\t{{ type = "string", custom = false, name = "hovered_file_extension", params = {{ false }} }},
+\t\t\t\t{{ type = "coloreds", custom = false, name = "permissions" }},
+\t\t\t}},
+\t\t}},
+\t}},
+}})
+
+-- Vim-style counts: 3j, 5k, 2gg (1-9 start a motion). Relative line numbers.
+require("relative-motions"):setup({{ show_numbers = "relative_absolute", show_motion = true }})
+
+-- fg (f g / f G / f f): search file contents or names with ripgrep + fzf and
+-- jump to the result in yazi.
+require("fg"):setup({{ default_action = "jump" }})
+
+-- what-size (Ctrl-S): size of the selection or of the current directory.
+require("what-size"):setup({{}})
+
+if ya.uid then
+\t-- gvfs (M m / M u / g m ...): mount phones (MTP), SMB/SFTP shares, ... through
+\t-- GVFS. Needs a D-Bus session (any desktop login).
+\trequire("gvfs"):setup({{
+\t\twhich_keys = "1234567890qwertyuiopasdfghjklzxcvbnm",
+\t\tblacklist_devices = {{ {{ scheme = "file" }} }},
+\t\tsave_path = os.getenv("HOME") .. "/.config/yazi/gvfs.private",
+\t\tsave_path_automounts = os.getenv("HOME") .. "/.config/yazi/gvfs_automounts.private",
+\t\tinput_position = {{ "center", y = 0, w = 60 }},
+\t}})
+
+\t-- recycle-bin (R b / R o / R r / R d / R e): browse and restore the trash
+\t-- (trash-cli).
+\trequire("recycle-bin"):setup()
+end
+"""
+    write(SKEL_CFG / "yazi" / "init.lua", content)
 
 
 def gen_bat() -> None:
@@ -534,15 +671,68 @@ themes {{
     write(SKEL_CFG / "zellij" / "config.kdl", content)
 
 
+# Right-prompt language/tool modules: (module, short label, Nerd Font symbol,
+# palette color). Each one is only shown inside a matching project.
+STARSHIP_LANGS = [
+    ("c", "c", "", "bright_cyan"),
+    ("cpp", "cpp", "", "bright_cyan"),
+    ("cmake", "cmake", "", "bright_blue"),
+    ("golang", "go", "", "bright_cyan"),
+    ("rust", "rs", "\U000f1617", "bright_red"),
+    ("python", "py", "", "bright_yellow"),
+    ("nodejs", "node", "", "bright_green"),
+    ("java", "java", "", "bright_red"),
+    ("kotlin", "kt", "", "bright_violet"),
+    ("lua", "lua", "", "bright_blue"),
+    ("php", "php", "", "violet"),
+    ("ruby", "rb", "", "red"),
+    ("dotnet", ".net", "", "violet"),
+    ("docker_context", "docker", "", "blue"),
+    ("nix_shell", "nix", "", "bright_blue"),
+    ("aws", "aws", "", "yellow"),
+]
+
+
 def gen_starship(p: Palette) -> None:
     u, x = p.ui, p.ansi
-    content = f"""{header('#')}# monOS minimal Starship prompt
+    right = "".join(f"${m}" for m, *_ in STARSHIP_LANGS)
+    lang_blocks = []
+    for module, label, symbol, color in STARSHIP_LANGS:
+        lines = [f"[{module}]", f'symbol = "{symbol} "', f'style = "bold {color}"']
+        if module == "python":
+            # Show the virtualenv and the version: they matter in Python.
+            lines.append('format = " [py](italic muted) [${symbol}(\\\\($virtualenv\\\\) )${version}]($style)"')
+            lines.append('version_format = "${raw}"')
+        elif module == "docker_context":
+            lines.append('format = " [docker](italic muted) [$symbol$context]($style)"')
+        elif module == "nix_shell":
+            lines.append('format = " [nix](italic muted) [$symbol$state( $name)]($style)"')
+        elif module == "aws":
+            lines.append('format = " [aws](italic muted) [$symbol$profile( $region)]($style)"')
+            lines.append("disabled = true")
+        else:
+            lines.append(f'format = " [{label}](italic muted) [$symbol]($style)"')
+        if module == "nodejs":
+            # A package.json (or lock file / node_modules) marks a Node project;
+            # loose .js files do not.
+            lines.append("detect_extensions = []")
+            lines.append('detect_files = ["package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml", ".nvmrc"]')
+            lines.append('detect_folders = ["node_modules"]')
+        lang_blocks.append("\n".join(lines))
+    langs = "\n\n".join(lang_blocks)
+    content = f"""{header('#')}# monOS Starship prompt (one line):
+#   left:  distro glyph, directory, git branch/commit/state/status, prompt character
+#   right: language/tool of the current project (label + icon), memory (only
+#          above 75 %), duration of slow commands, exit status of failed
+#          commands, time
 "$schema" = 'https://starship.rs/config-schema.json'
 
-add_newline = true
+add_newline = false
 palette = "monos"
+continuation_prompt = "[▶▶ ](muted)"
 
-format = "$directory$git_branch$git_status$cmd_duration$line_break$character"
+format = "[\\U000f08c7 ](bold blue)$directory$git_branch$git_commit$git_state$git_status$character"
+right_format = "{right}$memory_usage$cmd_duration$status$time"
 
 [palettes.monos]
 blue = "{x['blue']}"
@@ -550,31 +740,72 @@ bright_blue = "{x['bright-blue']}"
 violet = "{u['violet-text']}"
 bright_violet = "{x['bright-magenta']}"
 cyan = "{x['cyan']}"
+bright_cyan = "{x['bright-cyan']}"
 green = "{x['green']}"
+bright_green = "{x['bright-green']}"
 yellow = "{x['yellow']}"
+bright_yellow = "{x['bright-yellow']}"
 red = "{x['red']}"
+bright_red = "{x['bright-red']}"
 muted = "{u['muted']}"
+fg_dim = "{u['fg-dim']}"
 fg = "{u['fg']}"
 
 [directory]
 style = "bold blue"
+format = "[$path]($style)[$read_only]($read_only_style) "
 truncation_length = 3
+truncate_to_repo = false
 
 [git_branch]
-symbol = " "
+symbol = "\\ue0a0 "
 style = "bold violet"
+format = "[$symbol$branch(:$remote_branch)]($style) "
 
-[git_status]
+[git_commit]
+style = "bold green"
+format = "[\\\\($hash$tag\\\\)]($style) "
+
+[git_state]
 style = "bold yellow"
 
-[cmd_duration]
-min_time = 2000
-style = "muted"
+[git_status]
+style = "bold cyan"
+ahead = "⇡${{count}}"
+behind = "⇣${{count}}"
+diverged = "⇕⇡${{ahead_count}}⇣${{behind_count}}"
+format = "([$all_status$ahead_behind]($style) )"
 
 [character]
 success_symbol = "[❯](bold bright_blue)"
 error_symbol = "[❯](bold red)"
 vimcmd_symbol = "[❮](bold green)"
+
+{langs}
+
+[memory_usage]
+disabled = false
+threshold = 75
+symbol = "\\U000f035b "
+style = "bold bright_cyan"
+format = " [mem](italic muted) [$symbol$ram( | $swap)]($style)"
+
+[cmd_duration]
+min_time = 2000
+style = "bold yellow"
+format = " [\\uf252 $duration]($style)"
+
+[status]
+disabled = false
+symbol = "\\uf00d "
+style = "bold red"
+format = " [$symbol$status]($style)"
+
+[time]
+disabled = false
+time_format = "%R"
+style = "fg_dim"
+format = " [\\uf43a $time]($style)"
 """
     write(SKEL_CFG / "starship.toml", content)
 
@@ -607,6 +838,9 @@ export FZF_DEFAULT_OPTS="--color={colors}"
     text = path.read_text(encoding="utf-8")
     text = replace_block(text, block)
     write(path, text)
+    # root has no ~/.config/zsh: the same .zshrc falls back to the modules in
+    # /etc/skel/.config/zsh, so /root/.zshrc is an exact copy.
+    write(AIROOTFS / "root" / ".zshrc", text)
 
 
 def gen_helix(p: Palette) -> None:
@@ -747,22 +981,40 @@ MONKEY = [
     "           '-.______.-'",
 ]
 
-FASTFETCH_MODULES = [
-    "title",
-    "separator",
-    {"type": "os", "key": "OS"},
-    {"type": "kernel", "key": "Kernel"},
-    {"type": "packages", "key": "Packages"},
-    {"type": "shell", "key": "Shell"},
-    {"type": "de", "key": "DE"},
-    {"type": "terminal", "key": "Terminal"},
-    {"type": "cpu", "key": "CPU"},
-    {"type": "gpu", "key": "GPU"},
-    {"type": "memory", "key": "Memory"},
-    {"type": "disk", "key": "Disk", "folders": "/"},
-    "break",
-    "colors",
-]
+BOX_TOP = "┌──────────────────────────────────────────┐"
+BOX_BOTTOM = "└──────────────────────────────────────────┘"
+
+
+def fastfetch_modules(p: Palette) -> list:
+    """Two boxes: system/session, then user@host and hardware."""
+    x = p.ansi
+    box = p.ui["border"]
+
+    def m(kind: str, key: str, color: str, **extra) -> dict:
+        return {"type": kind, "key": key, "keyColor": x[color], **extra}
+
+    return [
+        {"type": "custom", "format": BOX_TOP, "outputColor": box},
+        m("chassis", "  \U000f01fa Chassis", "cyan", format="{type}"),
+        m("os", "  \U000f08c7 OS", "blue", format="{pretty-name} {arch}"),
+        m("kernel", "   Kernel", "blue", format="{release}"),
+        m("packages", "  \U000f03d7 Packages", "green"),
+        m("display", "  \U000f0379 Display", "green", format="{width}x{height} @ {refresh-rate}Hz"),
+        m("terminal", "   Terminal", "yellow"),
+        m("de", "   DE", "yellow"),
+        {"type": "custom", "format": BOX_BOTTOM, "outputColor": box},
+        "break",
+        {"type": "title", "key": "  ", "format": "{user-name-colored}{at-symbol-colored}{host-name-colored}"},
+        {"type": "custom", "format": BOX_TOP, "outputColor": box},
+        m("cpu", "   CPU", "magenta", format="{name} @ {freq-max}"),
+        m("gpu", "  \U000f02b4 GPU", "magenta", format="{name}"),
+        m("gpu", "   GPU Driver", "magenta", format="{driver}"),
+        m("memory", "  \U000f035b Memory", "cyan"),
+        m("disk", "  \U000f199f OS Age", "red", folders="/", format="{days} days"),
+        m("uptime", "  \U000f1ad0 Uptime", "red"),
+        {"type": "custom", "format": BOX_BOTTOM, "outputColor": box},
+        {"type": "colors", "paddingLeft": 2, "symbol": "circle"},
+    ]
 
 
 def gen_fastfetch(p: Palette) -> None:
@@ -771,6 +1023,7 @@ def gen_fastfetch(p: Palette) -> None:
     width = max(len(re.sub(r"\$\d", "", line)) for line in lines)
     art = "$1" + "\n".join(lines) + "\n"
     write(AIROOTFS / "usr" / "share" / "monos" / "fastfetch" / "monos.txt", art)
+    modules = fastfetch_modules(p)
 
     def config(logo: dict, note: str) -> str:
         cfg = {
@@ -779,9 +1032,9 @@ def gen_fastfetch(p: Palette) -> None:
             "display": {
                 "separator": "  ",
                 "color": {"keys": x["blue"], "title": u["accent-text"], "separator": u["muted"]},
-                "key": {"width": 10},
+                "key": {"width": 16},
             },
-            "modules": FASTFETCH_MODULES,
+            "modules": modules,
         }
         return header("//", note) + json.dumps(cfg, indent=2, ensure_ascii=False) + "\n"
 
@@ -789,14 +1042,14 @@ def gen_fastfetch(p: Palette) -> None:
         "type": "file",
         "source": "/usr/share/monos/fastfetch/monos.txt",
         "color": {"1": u["fg"], "2": x["blue"]},
-        "padding": {"left": 1, "right": 3},
+        "padding": {"left": 1, "right": 3, "top": 2},
     }
     kitty_logo = {
         "type": "kitty-direct",
         "source": "/usr/share/monos/fastfetch/monos.png",
         "width": width,
         "height": len(lines) + 2,
-        "padding": {"left": 1, "right": 3, "top": 1},
+        "padding": {"left": 1, "right": 3, "top": 2},
     }
     write(
         SKEL_CFG / "fastfetch" / "config.jsonc",
@@ -804,7 +1057,7 @@ def gen_fastfetch(p: Palette) -> None:
             ascii_logo,
             "monOS fastfetch configuration: ASCII-art logo, works in every terminal\n"
             "(kitty, foot, the Linux console, SSH). In kitty, `fastfetch -c monos-kitty`\n"
-            "shows the logo as an image (kitty graphics protocol).",
+            "shows the logo as an image (kitty graphics protocol). Icons need a Nerd Font.",
         ),
     )
     write(
@@ -812,7 +1065,8 @@ def gen_fastfetch(p: Palette) -> None:
         config(
             kitty_logo,
             "monOS fastfetch preset with the logo as an image (kitty graphics protocol).\n"
-            "Usage (kitty only): fastfetch -c monos-kitty",
+            "Same modules as ~/.config/fastfetch/config.jsonc. Usage (kitty only):\n"
+            "fastfetch -c monos-kitty",
         ),
     )
 

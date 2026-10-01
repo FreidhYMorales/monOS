@@ -1,0 +1,20 @@
+# yazi plugins vendored by monOS (branding/tools/vendor-yazi-plugins.sh).
+# Each directory is an unmodified copy of the plugin at the commit below
+# (*.lua, LICENSE, README.md, assets without screenshots). Their licenses
+# apply: see the LICENSE file in each directory.
+#
+# plugin            license   source (https://github.com/<repository>) @ commit
+bypass            MIT       Rolv-Apneseth/bypass.yazi @ 4a0c70ec9122d884deb659ff620af0098314c136
+clipboard         AGPL-3.0  XYenon/clipboard.yazi @ b25ec9697df1855634dc98d225a436d9c6783cec
+fg                MIT       DreamMaoMao/fg.yazi @ b9fb819d2c407795d0e0678ef33f0dd0b2db8bb3
+full-border       MIT       yazi-rs/plugins:full-border.yazi @ 4dc7f1b6458c2578f4494f10d468c68c1082214f
+gvfs              MIT       boydaihungst/gvfs.yazi @ a85d65961b0ce99b472dd6e83b99062be178450b
+lazygit           MIT       Lil-Dank/lazygit.yazi @ e73fd74c2af3300368b33da1cfbab6a8649a41a8
+mediainfo         MIT       boydaihungst/mediainfo.yazi @ d2dd310bfbc3a819acf1c9c9c32f402ab6774d3a
+mount             MIT       yazi-rs/plugins:mount.yazi @ 4dc7f1b6458c2578f4494f10d468c68c1082214f
+ouch              MIT       ndtoan96/ouch.yazi @ cfe4f507ef7337c8ad4c90eef68ea91fc6694759
+piper             MIT       yazi-rs/plugins:piper.yazi @ 4dc7f1b6458c2578f4494f10d468c68c1082214f
+recycle-bin       MIT       uhs-robert/recycle-bin.yazi @ fe48a02778574b59ea15e289895f896a4e7e14eb
+relative-motions  MIT       dedukun/relative-motions.yazi @ a603d9ea924dfc0610bcf9d3129e7cba605d4501
+what-size         MIT       pirafrank/what-size.yazi @ ec94d9a8496241d91dcfb2a864214871c326ddc5
+yatline           MIT       imsi32/yatline.yazi @ c5d4b487d6277dd68ea9d3c6537641bf4ae9cf8e

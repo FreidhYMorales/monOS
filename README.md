@@ -210,7 +210,7 @@ the installed system.
 | Shortcuts | see the table below | `/etc/skel/.config/kglobalshortcutsrc` (new users), `X-KDE-Shortcuts` in `/usr/local/share/applications/monos-tiling-toggle.desktop` (all users) |
 | Dolphin | details view, hidden files shown, editable location bar with the full path, full path in the title bar | `/etc/xdg/dolphinrc`, `/etc/skel/.local/share/dolphin/view_properties/global/.directory` |
 | VS Code (Code - OSS) | `monOS` color theme (workbench, terminal ANSI colors, syntax and semantic tokens), JetBrainsMono Nerd Font with ligatures, Seti icons, custom title bar, telemetry off | theme: built-in extension `/usr/lib/code/extensions/monos-theme`; settings: `/etc/skel/.config/Code - OSS/User/settings.json` |
-| Terminals and CLI | kitty, foot, btop, yazi, bat (`--theme=ansi`), fzf, lazygit, zellij, helix, starship, fastfetch | files in `/etc/skel/.config` (and a block in `/etc/skel/.zshrc`), copied to new users' homes |
+| Terminals and CLI | kitty, foot, btop, yazi (theme and yatline bars), bat (`--theme=ansi`), fzf, lazygit, zellij, helix, starship, fastfetch; behavior: see [Shell & CLI defaults](#shell--cli-defaults) | files in `/etc/skel/.config` (and a block in `/etc/skel/.zshrc`), copied to new users' homes |
 | Neovim / Vim | `monos` colorscheme only (no plugins, no user config) | `/usr/local/share/nvim/site` and `/usr/share/vim/vimfiles`; used when the user config does not pick a colorscheme |
 | Login | SDDM Breeze with the monOS Orbit background and logo, Bibata cursor | `/usr/share/sddm/themes/breeze/theme.conf.user`, `/etc/sddm.conf.d/10-monos-theme.conf` |
 | Boot splash | Plymouth theme `monos` (logo, spinner, LUKS password prompt) | build-time pacman hook runs `plymouth-set-default-theme monos`; live: `plymouth` hook in the archiso initramfs and `quiet splash` on the default boot entries; installed: Calamares adds the `plymouth` hook and `splash` automatically |
@@ -259,6 +259,136 @@ Plymouth: `sudo plymouth-set-default-theme -R <theme>`. Klassy: run
 Klassy). VS Code: the theme is picked with Ctrl+K Ctrl+T > monOS.
 
 The UEFI live medium boots with systemd-boot, which has no theme support.
+
+## Shell & CLI defaults
+
+New users get these files from `/etc/skel` (root uses the same `.zshrc`, which
+falls back to the modules and Starship config in `/etc/skel` because root has
+no `~/.config/zsh`). Everything works offline: plugins come from Arch packages
+or are vendored, nothing is cloned or downloaded at runtime.
+
+Which files are generated: `gen-themes.py` writes everything with colors
+(`.zshrc` fzf block and its `/root/.zshrc` copy, `starship.toml`,
+`fastfetch/config.jsonc` and the `monos-kitty` preset, `kitty.conf`,
+`yazi/theme.toml`, `yazi/init.lua`). The rest are plain files edited by hand:
+`~/.config/zsh/*`, `atuin/config.toml`, `mpv/mpv.conf`, `yazi/yazi.toml`,
+`yazi/keymap.toml` and the vendored `yazi/plugins/`.
+
+### Zsh
+
+`~/.zshrc` only sources the modules in `~/.config/zsh`, in this order:
+`env.zsh` (PATH with `~/.local/bin`, `EDITOR`=nvim or vim, man pages through
+bat), `options.zsh` (history in `~/.local/state/zsh/history`, 100k entries,
+shared between shells, with timestamps; `auto_cd`), `completion.zsh`
+(menu selection, case-insensitive, `LS_COLORS`, cached), `keybinds.zsh`,
+`functions/*.zsh`, `integrations.zsh` (starship, zoxide, direnv, fzf, atuin),
+`plugins.zsh` (zsh-autosuggestions, then zsh-syntax-highlighting),
+`aliases.zsh` (last, so its global alias never reaches the code sourced
+before it) and an optional `~/.config/zsh/local.zsh` for your own additions.
+No Oh My Zsh and no plugin manager.
+
+| Key | Action |
+|-----|--------|
+| Ctrl-R | search the history with atuin (Enter runs, Tab edits; local database, no sync unless you `atuin login`) |
+| Up / Down | previous/next command starting with what you typed |
+| Ctrl-T / Alt-C | fzf: insert a file path / cd into a directory (with previews) |
+| Esc Esc | add or remove `sudo ` at the start of the line (previous command if the line is empty) |
+| Alt-1 .. Alt-9 | insert the command run 1..9 commands ago |
+| `?` after `command ` | runs `command --help` (`git commit ?`); a `?` anywhere else is typed normally |
+| Home / End / Delete, Ctrl-Left / Ctrl-Right, Ctrl-Backspace / Ctrl-Delete | line start/end, delete, word movement, delete word |
+| Right / End | accept the gray autosuggestion (Ctrl-Right: one word) |
+
+| Alias | Command |
+|-------|---------|
+| `ls`, `l`, `ll`, `la`, `lt`, `ld` | eza: grid, long, long + hidden + git, grid + hidden, tree (2 levels), directories only (icons, directories first) |
+| `cat` | `bat --style=plain --paging=never` |
+| `<cmd> --help` | help text colored by bat (global alias; write `\--help` for raw output) |
+| `df` | `duf` (`df -h` and `df <path>` keep working) |
+| `c`, `lg` | `clear`, `lazygit` |
+| `up`, `un`, `pl`, `pa`, `pc`, `po` | update system, remove package (`-Rns`), search installed, search repos, clean cache, remove orphans. They use `yay` when it is installed (AUR included), else `sudo pacman` (queries without sudo); as root, `pacman` |
+
+| Function | Action |
+|----------|--------|
+| `y [dir]` | yazi; quitting with `q` leaves the shell in yazi's directory |
+| `ffcd [query]` | fuzzy-pick a directory below `.` and cd into it |
+| `ffe [query]` | fuzzy-pick a file and open it in `$EDITOR` (bat preview) |
+| `ffec [pattern]` | pick a file whose content matches (ripgrep, case-insensitive) and open it |
+
+The finders skip `.git`, `node_modules`, `.venv`, `target`, `.cache` and
+`__pycache__` (and, with fd, what `.gitignore` ignores). `z <dir>` / `zi`
+come from zoxide, `.envrc` files from direnv (`direnv allow` first).
+
+### Prompt, terminal and tools
+
+- Starship: one line. Left: distro glyph, directory, git branch, commit,
+  state and status, `❯`. Right: the project's language/tool (C, C++, CMake,
+  Go, Rust, Python with virtualenv and version, Node.js when a `package.json`
+  exists, Java, Kotlin, Lua, PHP, Ruby, .NET, Docker context, Nix shell),
+  memory above 75 %, duration of commands over 2 s, exit status of failed
+  commands, time. AWS is disabled.
+- fastfetch: two boxes (chassis, OS, kernel, packages, display, terminal, DE;
+  then user@host, CPU, GPU, GPU driver, memory, "OS Age" = days since `/` was
+  created, uptime) and the color dots. Same layout with the image logo in
+  `fastfetch -c monos-kitty`.
+- kitty: 0.92 opacity with compositor blur (KWin), 6 px padding, cursor
+  trail, slanted powerline tabs at the bottom (`:N:` = windows in the tab),
+  no bell. Remote control only through the per-instance socket
+  `/tmp/kitty-<pid>` (`kitten @ ...`); set `allow_remote_control no` if you
+  do not want any process of your user to be able to control kitty.
+- mpv: `gpu-next` output, safe hardware decoding, demuxer cache, resume
+  position, stay open at the end, screenshots as PNG in `~/Pictures/Screenshots`.
+- atuin: Enter runs the selected command, compact list 20 lines high, no
+  update checks.
+
+### yazi
+
+`y` starts it. Layout 1:3:4, natural sort with directories first, full
+border, yatline status bars in the monOS colors, relative line numbers.
+Openers: `$EDITOR` for text, `xdg-open` for the rest, `ouch` to extract
+archives. Previews: Markdown with glow, archives with ouch, media with
+mediainfo (cover + metadata, `I` toggles), binaries as a hex dump (hexyl);
+nothing is preloaded/previewed under `/run/media` (USB drives) and GVFS mounts.
+
+| Key | Action |
+|-----|--------|
+| `l` / Right / Enter | enter a directory (skipping single-child directories) or open the file |
+| `1`-`9` then `j`/`k` | relative motions (`3j`) |
+| `s n` / `s a` / `s m` / `s s` | sort natural / alphabetical / newest first / largest first |
+| `T` / `X` / Tab / Shift-Tab | new tab / close tab / next / previous tab |
+| `y` / Ctrl-P | yank and copy the paths to the clipboard / paste files from the clipboard |
+| `f g` / `f G` / `f f` | search contents (fuzzy) / contents (exact) / file names, jump to the result |
+| `M m` / `M u` / `g m` | GVFS: mount a phone or share / unmount / jump to a mounted device |
+| `M M` | mount manager for local disks (udisks2) |
+| `R b` / `R r` / `R e` | trash: menu / restore / empty |
+| `C` / Ctrl-S / `g i` / `!` | compress with ouch / size of selection / lazygit / open a shell here |
+
+These replace yazi defaults: `s` (fd search: use `f f`), `f` (filter), `1`-`9`
+(tab N), Tab (file info), `X`, Ctrl-S. F1 or `~` lists every key.
+
+The plugins are vendored in `/etc/skel/.config/yazi/plugins`, unmodified, at
+pinned commits (`plugins/monos-plugins.txt`). Update or re-vendor them with
+`./branding/tools/vendor-yazi-plugins.sh` (needs network; edit the commit
+list at the top of the script). Each keeps its own license file:
+
+| Plugin | Author / repository | License | Commit |
+|--------|---------------------|---------|--------|
+| bypass | Rolv-Apneseth/bypass.yazi | MIT | `4a0c70e` |
+| clipboard | XYenon/clipboard.yazi | AGPL-3.0 | `b25ec96` |
+| fg | DreamMaoMao/fg.yazi | MIT | `b9fb819` |
+| full-border, mount, piper | yazi-rs/plugins | MIT | `4dc7f1b` |
+| gvfs | boydaihungst/gvfs.yazi | MIT | `a85d659` |
+| lazygit | Lil-Dank/lazygit.yazi | MIT | `e73fd74` |
+| mediainfo | boydaihungst/mediainfo.yazi | MIT | `d2dd310` |
+| ouch | ndtoan96/ouch.yazi | MIT | `cfe4f50` |
+| recycle-bin | uhs-robert/recycle-bin.yazi | MIT | `fe48a02` |
+| relative-motions | dedukun/relative-motions.yazi | MIT | `a603d9e` |
+| what-size | pirafrank/what-size.yazi | MIT | `ec94d9a` |
+| yatline | imsi32/yatline.yazi | MIT | `c5d4b48` |
+
+Not included: rich-preview (needs `rich-cli`, AUR only), simple-mtp (no
+license, needs `simple-mtpfs`, AUR only; GVFS covers MTP phones) and
+system-clipboard (needs the `cb` tool, not in the Arch repositories; the
+clipboard plugin above uses `wl-clipboard`).
 
 ## Structure
 
