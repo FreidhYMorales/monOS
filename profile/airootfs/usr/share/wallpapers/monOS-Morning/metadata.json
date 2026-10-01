@@ -1,0 +1,12 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "monOS Project"
+            }
+        ],
+        "Id": "monOS-Morning",
+        "License": "CC-BY-SA-4.0",
+        "Name": "monOS Morning"
+    }
+}
