@@ -66,6 +66,7 @@ and updates the repository database `localrepo/x86_64/monos.db.tar.gz`.
 | klassy                  | application style and window decoration (built from source) |
 | bibata-cursor-theme-bin | Bibata cursors (upstream release archive)                   |
 | kwin-scripts-krohnkite  | Krohnkite dynamic tiling KWin script (patched, see below)   |
+| plasma6-applets-panel-colorizer | Panel Colorizer: top bar islands and dock surface (third-party) |
 
 `klassy` is built from source rather than `klassy-bin`: the source package
 compiles against the Plasma/KDecoration version installed on the build host,
@@ -75,6 +76,10 @@ changes). Its build dependencies (`extra-cmake-modules`, KF6 and KF5
 development packages) are installed by `makepkg -s`. The PKGBUILD also
 produces `klassy-qt5` (Qt5 style); it lands in `localrepo/` but is not
 installed on the ISO.
+
+`plasma6-applets-panel-colorizer` also compiles a small C++ QML plugin
+(used for the blur behind the islands): its build needs `libplasma`,
+`cmake` and `extra-cmake-modules`, installed by `makepkg -s`.
 
 Run it as your normal user. `-s` installs missing build dependencies with
 `sudo pacman`, so it may ask for your password. If every build dependency is
@@ -297,7 +302,7 @@ targets, plus the monOS Light scale and terminal palette in `[light.ui]` /
 ./branding/tools/install-branding.sh   # artwork + runs gen-themes.py
 python3 branding/tools/gen-themes.py   # text configs only
 python3 branding/tools/gen-themes.py --check   # contrast report only
-./branding/tools/make-wallpapers.sh [orbit] [nebula] [daylight]   # redraw wallpapers
+./branding/tools/make-wallpapers.sh [orbit] [nebula] [space] [daylight] [astronaut]   # redraw wallpapers
 ```
 
 `install-branding.sh` needs `imagemagick` and `librsvg` (and `grub-mkfont`
@@ -359,19 +364,44 @@ Notes on shortcuts:
 
 Both Global Themes ship the same panel layout ("B"), written by
 `gen-themes.py` into `contents/layouts/org.kde.plasma.desktop-layout.js`
-(Plasma 6 desktop scripting; property names checked against
-plasma-workspace 6.7 `shell/scripting/panel.cpp`):
+(Plasma 6 desktop scripting; panel properties checked against
+plasma-workspace 6.7 `shell/scripting/panel.cpp`, widget keys against each
+widget's `main.xml` in plasma-desktop / plasma-workspace 6.7.5):
 
 | Panel | Settings | Widgets (left to right) |
 |-------|----------|-------------------------|
-| Top bar | `location = "top"`, full width (`lengthMode = "fill"`), not floating, `hiding = "none"`, `opacity = "translucent"` (KWin blur), ~32 px (`gridUnit * 1.75`) | Kickoff (monOS icon) and the pager (4 desktops); the clock with the date beside it (`ddd d MMM`, time format from the locale), centered by two expanding spacers; CPU and memory monitors (`org.kde.plasma.systemmonitor.cpu` / `.memory`); system tray |
-| Dock | `location = "bottom"`, floating, `lengthMode = "fit"`, `alignment = "center"`, `hiding = "dodgewindows"`, `opacity = "translucent"`, ~60 px thick (about 48 px icons) | icon-only task manager pinned with kitty, Dolphin, Firefox, Code - OSS and Obsidian; Trash |
+| Top bar | `location = "top"`, floating, full width (`lengthMode = "fill"`), `hiding = "none"`, ~36 px (`2 * gridUnit`) | three islands: **launcher** (Kickoff with the monOS icon) and the **pager** (desktops labelled 1-4, no window outlines); the **clock** (`Thu 1 Oct   14:52`: date beside the time, 24-hour, calendar on click), centered by two expanding spacers; **CPU and RAM** as labelled text (`org.kde.plasma.systemmonitor`, text-only face, colored dots), the **system tray** and a **session** button (opens the logout screen: log out, restart, shut down) |
+| Dock | `location = "bottom"`, floating, `lengthMode = "fit"`, `alignment = "center"`, `hiding = "dodgewindows"`, ~60 px thick (about 48 px icons) | **app grid** (Application Dashboard, `applications-all-symbolic` icon); separator; icon-only task manager pinned with kitty, Dolphin, Firefox, Code - OSS and Obsidian; separator; Trash |
+
+The task manager shows running indicators, badges and progress (Unity
+launcher API), window thumbnails in its tooltips (hovering one highlights
+that window), audio indicators with click-to-mute and media controls; a
+middle click opens a new instance, the mouse wheel cycles the hovered
+app's windows, and clicking a group shows its thumbnails.
 
 The top bar never hides, so Plasma reserves its space: maximized and tiled
 windows (Krohnkite too) start below it. The dock does not reserve space; it
 slides away when a window overlaps it and comes back when no window covers
 it or when the pointer touches the bottom edge. There is no "show desktop"
 button (Meta+D still works).
+
+**Panel Colorizer** (AUR `plasma6-applets-panel-colorizer`, a third-party
+widget) draws the look: the top bar itself is transparent and each group of
+widgets between two spacers becomes a rounded "island"; the dock gets one
+rounded surface. Both use the color scheme's view background, slightly
+translucent with KWin's blur behind, a 1 px accent outline, 8 px corners
+(Klassy's window radius) and a soft shadow; a hovered widget lifts to the
+overlay color and a widget with an open popup gets an accent outline. The
+colors come from the active color scheme, so MonosDark and MonosLight both
+look right. One hidden Panel Colorizer widget sits at the end of each
+panel (visible in Edit Mode); its settings are written by the layout
+script. The same settings are available as presets ("monOS Islands",
+"monOS Dock" and their Light versions) in the widget's Presets page
+(`~/.config/panel-colorizer/presets/`). If the widget breaks after a Plasma
+update, or is removed, the panels keep working with Plasma's own
+translucent background: only the extra styling is lost. The layout script
+skips the widget when it is not installed. The active desktop in the pager
+is highlighted by the Plasma theme (accent color), not by Panel Colorizer.
 
 The layout is applied at a user's first login. To get it again: System
 Settings > Colors & Themes > Global Theme > monOS (or monOS Light), check
@@ -420,9 +450,12 @@ Themes > Global Theme.
 Qt Quick Effects and SDDM's own `SddmComponents` (translated strings): no
 Plasma or Kirigami. It shows:
 
-- the monOS Nebula wallpaper, blurred and dimmed (Nebula rather than Orbit
-  because the Orbit mascot sits right where the form is); the blur needs a
-  GPU scene graph, with the software renderer the picture shows unblurred;
+- the Nebula sky without its wordmark (`background.jpg` in the theme folder,
+  rendered by `make-wallpapers.sh space` and installed by
+  `install-branding.sh`), blurred and dimmed: the card already shows the
+  logo, and the Orbit mascot would sit right where the form is; the blur
+  needs a GPU scene graph, with the software renderer the picture shows
+  unblurred;
 - the monOS wordmark and the host name (top left), suspend / reboot / shut
   down (top right, only those the system allows);
 - a large clock with the date, then a translucent card with the users

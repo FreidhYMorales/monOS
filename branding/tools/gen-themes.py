@@ -52,6 +52,19 @@ ICON_THEME = "yet-another-monochrome-icon-set"
 WALLPAPER_DEFAULT = "monOS-Orbit"
 WALLPAPER_LIGHT = "monOS-Daylight"
 KICKOFF_ICON = "monos-small"
+# Dock app-grid button (Application Dashboard, org.kde.plasma.kickerdash):
+# Yamis ships categories/scalable/applications-all-symbolic.svg, Papirus
+# has it too (symbolic/categories).
+APP_GRID_ICON = "applications-all-symbolic"
+# Top bar clock: date beside the time. The em space + word joiner (U+2060)
+# at the end keep a visible gap: Qt leaves trailing spaces out of a label's
+# width, so a plain trailing space would collapse.
+CLOCK_DATE_FORMAT = "ddd d MMM\u2003\u2060"
+# Panel Colorizer (AUR plasma6-applets-panel-colorizer, v8.0.0): widget id
+# from package/metadata.json; it draws the top bar islands and the dock
+# surface. Corner radius shared with Klassy's WindowCornerRadius.
+PANEL_COLORIZER = "luisbocanegra.panel.colorizer"
+PANEL_RADIUS = 8
 FIXED_FONT = "JetBrainsMono Nerd Font,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 # UI fonts: the "Propo" variant keeps Nerd icons at their natural width, which
 # reads better than single-cell icons outside a terminal grid.
@@ -102,10 +115,11 @@ SHIFTED_DIGITS = {
     4: ["$"],
 }
 # SDDM greeter theme (/usr/share/sddm/themes/monos, Qt 6 QML). Its
-# background is Nebula: the Orbit mascot sits in the middle of the screen,
-# right where the login form goes.
+# background is the Nebula sky without the wordmark (install-branding.sh,
+# from make-wallpapers.sh "space"): the login card already shows the logo,
+# and the Orbit mascot would sit right where the form goes.
 SDDM_THEME = "monos"
-SDDM_WALLPAPER = "monOS-Nebula"
+SDDM_BACKGROUND = f"/usr/share/sddm/themes/{SDDM_THEME}/background.jpg"
 VSCODE_EXTENSION = "monos-theme"
 VSCODE_THEME_NAME = "monOS"
 
@@ -1624,23 +1638,114 @@ def kde_color_groups(p: Palette, light: bool = False) -> str:
     return "\n".join(out) + "\n"
 
 
-def plasma_layout_js(wallpaper: str, theme_name: str) -> str:
+def colorizer_color(system_color: str, alpha: float, color_set: str = "View") -> dict:
+    """A Panel Colorizer color taken from the Plasma color scheme.
+
+    sourceType 1 = Kirigami theme color (package/contents/ui/code/utils.js
+    getColor); MonosDark/MonosLight map View background to ui.surface /
+    light.ui.bg, View highlight to the brand accent and Window alternate
+    background to ui.overlay / light.ui.overlay. Following the scheme keeps
+    the islands right when only the color scheme changes (e.g. Plasma's
+    day/night switching)."""
+    return {
+        "enabled": True,
+        "sourceType": 1,
+        "systemColor": system_color,
+        "systemColorSet": color_set,
+        "alpha": alpha,
+    }
+
+
+def colorizer_settings(kind: str, light: bool) -> dict:
+    """Panel Colorizer `globalSettings` for the top bar ("islands") or the dock.
+
+    Only the keys monOS changes are written; the widget fills in the rest from
+    its defaults (Utils.mergeConfigs over Globals.defaultConfig, v8.0.0)."""
+    bg_alpha = 0.85 if light else 0.88
+    border_alpha = 0.35 if light else 0.30
+    shadow_alpha = 0.10 if light else 0.35
+    surface = {
+        "enabled": True,
+        "blurBehind": True,
+        "backgroundColor": colorizer_color("backgroundColor", bg_alpha),
+        "radius": {
+            "enabled": True,
+            "corner": {c: PANEL_RADIUS for c in ("topLeft", "topRight", "bottomRight", "bottomLeft")},
+        },
+        "border": {
+            "enabled": True,
+            "customSides": False,
+            "width": 1,
+            "color": colorizer_color("highlightColor", border_alpha),
+        },
+        "shadow": {
+            "background": {
+                "enabled": True,
+                "color": {"enabled": True, "sourceType": 0, "custom": "#000000", "alpha": shadow_alpha},
+                "size": 6,
+                "xOffset": 0,
+                "yOffset": 1,
+            },
+        },
+    }
+    # The panel's own (Plasma theme) background is hidden: the colorizer
+    # draws the rounded surfaces instead.
+    native = {"background": {"enabled": False, "opacity": 1.0, "shadow": False}}
+    if kind == "dock":
+        return {"nativePanel": native, "panel": {"normal": surface}}
+
+    # Islands: every widget gets the surface; Panel Colorizer merges the
+    # widgets between two panel spacers into one rounded island. Horizontal
+    # margins are the island's inner padding, vertical ones its gap to the
+    # panel edge.
+    island = dict(surface, spacing=4, opacity=1.0)
+    island["margin"] = {"enabled": True, "side": {"left": 6, "right": 6, "top": 2, "bottom": 2}}
+    # State overrides must repeat the plain (non-"enabled") keys, which are
+    # not inherited from "normal" (Utils.getEffectiveSettings).
+    plain = {"enabled": True, "blurBehind": True, "spacing": 4, "opacity": 1.0}
+    hovered = dict(plain, backgroundColor=colorizer_color("alternateBackgroundColor", bg_alpha, "Window"))
+    # Popup open (launcher, calendar, tray...): the widget's part of the
+    # island gets an accent outline.
+    expanded = dict(hovered)
+    expanded["border"] = {
+        "enabled": True,
+        "customSides": False,
+        "width": 1,
+        "color": colorizer_color("highlightColor", 0.85),
+    }
+    return {
+        "nativePanel": native,
+        "widgets": {"normal": island, "hovered": hovered, "expanded": expanded},
+    }
+
+
+def plasma_layout_js(p: Palette, wallpaper: str, theme_name: str, light: bool) -> str:
     """Panel layout "B" of a monOS Global Theme (Plasma 6 desktop scripting).
 
     Property names and values are the ones of plasma-workspace 6.7
     (shell/scripting/panel.cpp): location top/bottom, height (thickness),
     floating, opacity adaptive/opaque/translucent, lengthMode fill/fit/custom,
     alignment left/center/right, hiding none/autohide/dodgewindows/windowsgobelow.
+    Applet config keys come from each applet's main.xml (plasma-desktop and
+    plasma-workspace 6.7.5, libksysguard 6.7.5 for the system monitor faces).
     """
+    a = p.light_ansi if light else p.ansi
     launchers = ", ".join(f'"{app}"' for app in PINNED_APPS)
+    bar_cfg = json.dumps(colorizer_settings("bar", light), indent=4, sort_keys=True)
+    dock_cfg = json.dumps(colorizer_settings("dock", light), indent=4, sort_keys=True)
+    # json.dumps escapes U+2003/U+2060 as \\uXXXX, which JavaScript reads back.
+    date_format = json.dumps(CLOCK_DATE_FORMAT)
     return f"""{header('//')}// {theme_name} default desktop layout (Plasma 6 desktop scripting API).
 // Used by plasmashell when a user has no panel configuration yet (first
 // login), and by System Settings > Global Theme > {theme_name} with
 // "Desktop and window layout" checked.
 //
-// Layout "B": a thin top bar (launcher, virtual desktops, centered clock,
-// system monitor, tray) and a floating, centered dock that moves out of the
-// way of windows.
+// Layout "B": a floating top bar made of three islands (launcher and
+// virtual desktops | clock | system monitor, tray and session) and a
+// floating, centered dock that moves out of the way of windows. The islands
+// and the dock surface are drawn by Panel Colorizer (third-party widget,
+// AUR plasma6-applets-panel-colorizer); without it both panels keep Plasma's
+// own translucent background.
 
 // Wallpaper on every desktop.
 var allDesktops = desktops();
@@ -1651,44 +1756,102 @@ for (var i = 0; i < allDesktops.length; i++) {{
     desktop.writeConfig("Image", "file:///usr/share/wallpapers/{wallpaper}/");
 }}
 
-// --- Top bar: full width, ~32 px at the default font size, not floating ---
+// Panel Colorizer styles the panel it sits in; it hides itself outside Edit
+// Mode (hideWidget). Keys: package/contents/config/main.xml of the widget.
+// Skipped when the widget is not installed, so the layout never shows a
+// "widget not found" placeholder.
+var colorizerInstalled = fileExists("/usr/share/plasma/plasmoids/{PANEL_COLORIZER}/metadata.json");
+function addColorizer(panel, settings, islands) {{
+    if (!colorizerInstalled) {{
+        return;
+    }}
+    var colorizer = panel.addWidget("{PANEL_COLORIZER}");
+    colorizer.currentConfigGroup = ["General"];
+    colorizer.writeConfig("isEnabled", true);
+    colorizer.writeConfig("hideWidget", true);
+    // Islands are separated by panel spacers (the default separator widget),
+    // which get no background themselves.
+    colorizer.writeConfig("islandsEnabled", islands);
+    colorizer.writeConfig("islandSeparatorWidget", "org.kde.plasma.panelspacer");
+    colorizer.writeConfig("globalSettings", JSON.stringify(settings));
+}}
+
+// --- Top bar: floating, full width, ~36 px at the default font size ---
 // It never hides, so it reserves its space: maximized and tiled windows
 // (Krohnkite included) stay below it.
 var bar = new Panel;
 bar.location = "top";
-bar.floating = false;
+bar.floating = true;
 bar.hiding = "none";
 bar.lengthMode = "fill";
-// Translucent, so KWin's blur effect shows behind it.
+// Translucent, so KWin's blur effect shows behind it (fallback look when
+// Panel Colorizer is missing).
 bar.opacity = "translucent";
-bar.height = 2 * Math.ceil(gridUnit * 1.75 / 2);
+bar.height = 2 * Math.ceil(gridUnit);
 
+// Island 1: launcher and virtual desktops.
 var kickoff = bar.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
 kickoff.writeConfig("icon", "{KICKOFF_ICON}");
 
-// Virtual desktops (4, see /etc/xdg/kwinrc). The pager defaults are already
-// compact: plain boxes, no names or window icons.
-bar.addWidget("org.kde.plasma.pager");
+// Virtual desktops (4, see /etc/xdg/kwinrc) labelled 1-4. displayedText:
+// 0 Number, 1 Name, 2 None (pager main.xml); no window outlines or icons.
+var pager = bar.addWidget("org.kde.plasma.pager");
+pager.currentConfigGroup = ["General"];
+pager.writeConfig("displayedText", 0);
+pager.writeConfig("showWindowOutlines", false);
+pager.writeConfig("showWindowIcons", false);
 
 // Two expanding spacers center the clock on the bar (panelspacer computes
-// equal sizes from the widgets on both sides).
+// equal sizes from the widgets on both sides) and split the islands.
 bar.addWidget("org.kde.plasma.panelspacer");
 
-// "Wed 1 Oct  19:40": date beside the time, time format from the locale.
+// Island 2: "Thu 1 Oct   14:52", 24-hour time, calendar on click.
+// use24hFormat: 0 12-hour, 1 region default, 2 24-hour. The date ends in an
+// em space plus a word joiner: Qt drops trailing spaces from a label's
+// width, the joiner keeps the space, so date and time never touch.
 var clock = bar.addWidget("org.kde.plasma.digitalclock");
 clock.currentConfigGroup = ["Appearance"];
 clock.writeConfig("showDate", true);
 clock.writeConfig("dateFormat", "custom");
-clock.writeConfig("customDateFormat", "ddd d MMM");
+clock.writeConfig("customDateFormat", {date_format});
 clock.writeConfig("dateDisplayFormat", 1); // 0 Adaptive, 1 BesideTime, 2 BelowTime
+clock.writeConfig("use24hFormat", 2);
 
 bar.addWidget("org.kde.plasma.panelspacer");
 
-// Compact CPU and memory monitors (Plasma's own pie-chart applets).
-bar.addWidget("org.kde.plasma.systemmonitor.cpu");
-bar.addWidget("org.kde.plasma.systemmonitor.memory");
+// Island 3: CPU and memory as labelled text ("CPU 3%  RAM 21%"), the tray
+// and a session button. The plain org.kde.plasma.systemmonitor applet loads
+// no preset, so this face and these sensors are kept (libksysguard
+// SensorFaceController: [Appearance] chartFace/title, [Sensors] JSON lists,
+// [SensorLabels], [SensorColors]).
+var monitor = bar.addWidget("org.kde.plasma.systemmonitor");
+monitor.currentConfigGroup = ["Appearance"];
+monitor.writeConfig("chartFace", "org.kde.ksysguard.textonly");
+monitor.writeConfig("title", "System");
+monitor.currentConfigGroup = ["Sensors"];
+monitor.writeConfig("highPrioritySensorIds", '["cpu/all/usage","memory/physical/usedPercent"]');
+monitor.writeConfig("lowPrioritySensorIds", "[]");
+monitor.writeConfig("totalSensors", "[]");
+monitor.currentConfigGroup = ["SensorLabels"];
+monitor.writeConfig("cpu/all/usage", "CPU");
+monitor.writeConfig("memory/physical/usedPercent", "RAM");
+monitor.currentConfigGroup = ["SensorColors"];
+monitor.writeConfig("cpu/all/usage", "{kde_rgb(a['blue'])}");
+monitor.writeConfig("memory/physical/usedPercent", "{kde_rgb(a['magenta'])}");
+
 bar.addWidget("org.kde.plasma.systemtray");
+
+// One button that opens the logout screen (log out, restart, shut down).
+var session = bar.addWidget("org.kde.plasma.lock_logout");
+session.currentConfigGroup = ["General"];
+session.writeConfig("show_lockScreen", false);
+session.writeConfig("show_requestLogoutScreen", true);
+
+// Islands: surface of the color scheme (View background), slightly translucent,
+// 1 px accent outline, 8 px corners; hover/open popups lift the widget.
+var barStyle = {bar_cfg};
+addColorizer(bar, barStyle, true);
 
 // --- Dock: floating, centered, as wide as its icons ---
 // "dodgewindows": visible until a window overlaps it, then it slides away
@@ -1703,12 +1866,35 @@ dock.opacity = "translucent";
 // ~48 px icons at the default font size (gridUnit 18 -> 60 px thick).
 dock.height = 2 * Math.ceil(gridUnit * 3.25 / 2);
 
+// Full-screen application grid (Application Dashboard).
+var grid = dock.addWidget("org.kde.plasma.kickerdash");
+grid.currentConfigGroup = ["General"];
+grid.writeConfig("icon", "{APP_GRID_ICON}");
+
+dock.addWidget("org.kde.plasma.marginsseparator");
+
+// Task manager keys: plasma-desktop applets/taskmanager/main.xml. Running
+// indicators, badges and progress (Unity launcher API) are always on.
 var tasks = dock.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
 tasks.writeConfig("launchers", [{launchers}]);
+tasks.writeConfig("showToolTips", true);       // window thumbnails on hover
+tasks.writeConfig("highlightWindows", true);   // hovering a thumbnail highlights its window
+tasks.writeConfig("indicateAudioStreams", true);
+tasks.writeConfig("interactiveMute", true);
+tasks.writeConfig("tooltipControls", true);    // media controls in the tooltip
+tasks.writeConfig("groupingStrategy", 1);      // 0 none, 1 by program
+tasks.writeConfig("groupedTaskVisualization", 1); // click on a group: thumbnails
+tasks.writeConfig("middleClickAction", 2);     // NewInstance
+tasks.writeConfig("wheelEnabled", 2);          // wheel cycles the hovered app's windows
+tasks.writeConfig("iconSpacing", 3);           // 0 small, 1 normal, 3 large
 
 dock.addWidget("org.kde.plasma.marginsseparator");
 dock.addWidget("org.kde.plasma.trash");
+
+// Dock: one rounded surface with the same colors as the islands.
+var dockStyle = {dock_cfg};
+addColorizer(dock, dockStyle, false);
 """
 
 
@@ -1721,6 +1907,7 @@ def gen_lookandfeel(
     color_scheme: str,
     cursor: str,
     wallpaper: str,
+    light: bool = False,
 ) -> Path:
     """Write metadata.json, defaults and the panel layout of a Global Theme."""
     lnf = AIROOTFS / "usr" / "share" / "plasma" / "look-and-feel" / lnf_id
@@ -1769,7 +1956,10 @@ theme={DECORATION_THEME}
 Theme={LOOK_AND_FEEL_ID}
 """
     write(lnf / "contents" / "defaults", defaults)
-    write(lnf / "contents" / "layouts" / "org.kde.plasma.desktop-layout.js", plasma_layout_js(wallpaper, name))
+    write(
+        lnf / "contents" / "layouts" / "org.kde.plasma.desktop-layout.js",
+        plasma_layout_js(p, wallpaper, name, light),
+    )
     return lnf
 
 
@@ -1862,6 +2052,7 @@ PreviewImage={lock_image}
         color_scheme=COLOR_SCHEME_LIGHT,
         cursor=CURSOR_THEME_LIGHT,
         wallpaper=WALLPAPER_LIGHT,
+        light=True,
     )
     lnf = gen_lookandfeel(
         p,
@@ -1969,6 +2160,25 @@ Rectangle {{
     write(lnf / "contents" / "splash" / "Splash.qml", splash)
 
 
+def gen_panel_colorizer() -> None:
+    """Panel Colorizer presets in the user's preset folder (the widget lists
+    ~/.config/panel-colorizer/presets/<name>/settings.json, configPresets.qml).
+
+    The Global Theme layouts already write these settings into the widgets;
+    the presets let a user re-apply the monOS look from the widget's Presets
+    page after experimenting. A preset holds the widget settings except the
+    ones in Globals.ignoredConfigs (islands on/off is one of those)."""
+    presets = {
+        "monOS Islands": colorizer_settings("bar", light=False),
+        "monOS Islands Light": colorizer_settings("bar", light=True),
+        "monOS Dock": colorizer_settings("dock", light=False),
+        "monOS Dock Light": colorizer_settings("dock", light=True),
+    }
+    for name, settings in presets.items():
+        content = json.dumps({"globalSettings": settings}, indent=2, sort_keys=True) + "\n"
+        write(SKEL_CFG / "panel-colorizer" / "presets" / name / "settings.json", content)
+
+
 def desktop_id(index: int) -> str:
     """Stable virtual desktop id (KWin generates a random UUID when Id_N is missing)."""
     return str(uuid.uuid5(uuid.NAMESPACE_URL, f"https://monos/virtual-desktop/{index}"))
@@ -2036,7 +2246,7 @@ DrawTitleBarSeparator=false
 DrawBackgroundGradient=false
 # The title font weight comes from kdeglobals [WM] activeFont.
 BoldTitle=false
-WindowCornerRadius=8
+WindowCornerRadius={PANEL_RADIUS}
 RoundAllCornersWhenNoBorders=true
 UseTitleBarColorForAllBorders=true
 DrawBorderOnMaximizedWindows=false
@@ -2548,8 +2758,8 @@ QtVersion=6
 
     # SDDM also reads theme.conf.user next to it, for local overrides.
     theme_conf = f"""{header(';', 'monOS SDDM theme settings (put local overrides in theme.conf.user).')}[General]
-; Background picture; Nebula keeps the middle of the screen free for the form.
-background=/usr/share/wallpapers/{SDDM_WALLPAPER}/contents/images/3840x2160.jpg
+; Background picture: the Nebula sky without the wordmark (the card shows the logo).
+background={SDDM_BACKGROUND}
 ; Blur strength of the background, 0 (off) .. 1. Needs a GPU scene graph;
 ; the software renderer shows the picture without blur.
 blur=0.6
@@ -3155,6 +3365,7 @@ def main() -> int:
     gen_fastfetch(palette)
     gen_vim_colors(palette)
     gen_kde(palette)
+    gen_panel_colorizer()
     gen_kwin()
     gen_klassy(palette)
     gen_shortcuts()

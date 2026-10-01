@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Generate the procedural monOS space wallpapers (3840x2160, brand palette).
 #
-# Usage: ./branding/tools/make-wallpapers.sh [orbit] [nebula] [daylight] [astronaut]
+# Usage: ./branding/tools/make-wallpapers.sh [orbit] [nebula] [space] [daylight] [astronaut]
 #
 # Outputs branding/wallpapers/monos-orbit.jpg (glowing mascot),
 # branding/wallpapers/monos-nebula.jpg (clean nebula + small wordmark),
+# branding/wallpapers/monos-space.jpg (the same nebula without the wordmark:
+# the SDDM login background, whose card already shows the logo),
 # branding/wallpapers/monos-daylight.jpg (light nebula for monOS Light) and
 # branding/wallpapers/monos-astronaut{,-light}.jpg (line-art scene from
 # branding/wallpapers/src/astronaut.svg over the dark and light backgrounds).
@@ -13,7 +15,7 @@
 set -euo pipefail
 
 WANT=("$@")
-[[ ${#WANT[@]} -gt 0 ]] || WANT=(orbit nebula daylight astronaut)
+[[ ${#WANT[@]} -gt 0 ]] || WANT=(orbit nebula space daylight astronaut)
 want() { [[ " ${WANT[*]} " == *" $1 "* ]]; }
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -39,7 +41,7 @@ nebula() { # <seed> <blur> <contrast> <color> <strength> <out>
 }
 mkdir -p -- "${OUT}"
 
-if want orbit || want nebula || want astronaut; then
+if want orbit || want nebula || want space || want astronaut; then
     nebula 42 6 12,68% "${BLUE}" 0.45 n1.png
     nebula 5 4 14,75% "${VIOLET}" 0.35 n2.png
 
@@ -77,6 +79,10 @@ if want nebula; then
         -channel A -evaluate multiply 0.55 +channel wordmark.png
     magick space.png wordmark.png -gravity southeast -geometry +140+120 -compose Over -composite \
         -quality 92 "${OUT}/monos-nebula.jpg"
+fi
+
+if want space; then
+    magick space.png -quality 92 "${OUT}/monos-space.jpg"
 fi
 
 # Daylight (monOS Light): the same nebula idea on the light palette. Pale

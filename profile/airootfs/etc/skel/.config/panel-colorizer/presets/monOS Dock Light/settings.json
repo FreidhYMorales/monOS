@@ -1,0 +1,59 @@
+{
+  "globalSettings": {
+    "nativePanel": {
+      "background": {
+        "enabled": false,
+        "opacity": 1.0,
+        "shadow": false
+      }
+    },
+    "panel": {
+      "normal": {
+        "backgroundColor": {
+          "alpha": 0.85,
+          "enabled": true,
+          "sourceType": 1,
+          "systemColor": "backgroundColor",
+          "systemColorSet": "View"
+        },
+        "blurBehind": true,
+        "border": {
+          "color": {
+            "alpha": 0.35,
+            "enabled": true,
+            "sourceType": 1,
+            "systemColor": "highlightColor",
+            "systemColorSet": "View"
+          },
+          "customSides": false,
+          "enabled": true,
+          "width": 1
+        },
+        "enabled": true,
+        "radius": {
+          "corner": {
+            "bottomLeft": 8,
+            "bottomRight": 8,
+            "topLeft": 8,
+            "topRight": 8
+          },
+          "enabled": true
+        },
+        "shadow": {
+          "background": {
+            "color": {
+              "alpha": 0.1,
+              "custom": "#000000",
+              "enabled": true,
+              "sourceType": 0
+            },
+            "enabled": true,
+            "size": 6,
+            "xOffset": 0,
+            "yOffset": 1
+          }
+        }
+      }
+    }
+  }
+}

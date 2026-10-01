@@ -45,7 +45,8 @@ fi
 
 # Packages that profile/packages.x86_64 takes from the [monos] repository.
 repo_listing="$(tar -tzf "${SRC_REPO}/x86_64/${REPO_DB_NAME}")"
-for pkg in calamares ckbcomp yay-bin yamis-icon-theme-git klassy bibata-cursor-theme-bin kwin-scripts-krohnkite; do
+for pkg in calamares ckbcomp yay-bin yamis-icon-theme-git klassy bibata-cursor-theme-bin kwin-scripts-krohnkite \
+    plasma6-applets-panel-colorizer; do
     if ! grep -qE "^${pkg}-[^-]+-[^-]+/$" <<<"${repo_listing}"; then
         echo "error: package '${pkg}' is missing from the local repository." >&2
         echo "Build it first, as your normal user (not root): ./aur/build.sh ${pkg}" >&2

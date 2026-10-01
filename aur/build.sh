@@ -21,6 +21,8 @@ set -euo pipefail
 # None of the theming packages depends on another AUR package. klassy is
 # built from source (its PKGBUILD also produces klassy-qt5, which is not
 # installed on the ISO).
+# plasma6-applets-panel-colorizer compiles a small C++ QML plugin: its build
+# needs libplasma (and cmake/extra-cmake-modules), which makepkg -s installs.
 AUR_PACKAGES=(
     ckbcomp
     calamares
@@ -29,6 +31,7 @@ AUR_PACKAGES=(
     klassy
     bibata-cursor-theme-bin
     kwin-scripts-krohnkite
+    plasma6-applets-panel-colorizer
 )
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

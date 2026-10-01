@@ -11,6 +11,7 @@
 #   logos       /usr/share/monos/logo/*.svg, fastfetch image logo
 #   wallpapers  /usr/share/wallpapers/monOS-{Orbit,Nebula,Daylight} (KDE packages)
 #   Plasma      Global Theme previews (monOS, monOS Light) and splash logo
+#   SDDM        /usr/share/sddm/themes/monos/background.jpg (nebula, no wordmark)
 #   Plymouth    /usr/share/plymouth/themes/monos/*.png
 #   GRUB        /usr/share/grub/themes/monos (background, pixmaps, PF2 fonts)
 #   Syslinux    profile/syslinux/splash.png (640x480)
@@ -134,6 +135,14 @@ install -d -- "${lnf_light}/previews"
 magick "${WALLS}/monos-daylight.jpg" -resize 600x338 "${STRIP[@]}" "PNG32:${lnf_light}/previews/preview.png"
 magick "${WALLS}/monos-daylight.jpg" -resize 1920x1080 -quality 88 "${STRIP[@]}" \
     "${lnf_light}/previews/fullscreenpreview.jpg"
+
+echo ":: SDDM login background"
+# The wordmark-free nebula (make-wallpapers.sh space): the login card shows
+# the logo, so the background must not repeat it. 2560x1440 is plenty under
+# the greeter's blur and dimming.
+sddm="${AIROOTFS}/usr/share/sddm/themes/monos"
+install -d -- "${sddm}"
+magick "${WALLS}/monos-space.jpg" -resize 2560x1440 -quality 90 "${STRIP[@]}" "${sddm}/background.jpg"
 
 echo ":: Plymouth theme images"
 ply="${AIROOTFS}/usr/share/plymouth/themes/monos"

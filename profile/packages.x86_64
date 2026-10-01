@@ -335,6 +335,9 @@ klassy
 bibata-cursor-theme-bin
 # Krohnkite dynamic tiling KWin script (installed, disabled by default)
 kwin-scripts-krohnkite
+# Panel Colorizer: draws the top bar islands and the dock surface (third-party
+# widget; the panels still work, unstyled, if it breaks after a Plasma update)
+plasma6-applets-panel-colorizer
 
 # --- Installed system: kernels, boot and snapshots ---
 # linux-lts is a fallback kernel. mkarchiso copies every /boot/vmlinuz-* to

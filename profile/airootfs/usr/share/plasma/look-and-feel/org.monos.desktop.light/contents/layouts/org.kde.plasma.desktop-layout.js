@@ -5,9 +5,12 @@
 // login), and by System Settings > Global Theme > monOS Light with
 // "Desktop and window layout" checked.
 //
-// Layout "B": a thin top bar (launcher, virtual desktops, centered clock,
-// system monitor, tray) and a floating, centered dock that moves out of the
-// way of windows.
+// Layout "B": a floating top bar made of three islands (launcher and
+// virtual desktops | clock | system monitor, tray and session) and a
+// floating, centered dock that moves out of the way of windows. The islands
+// and the dock surface are drawn by Panel Colorizer (third-party widget,
+// AUR plasma6-applets-panel-colorizer); without it both panels keep Plasma's
+// own translucent background.
 
 // Wallpaper on every desktop.
 var allDesktops = desktops();
@@ -18,44 +21,207 @@ for (var i = 0; i < allDesktops.length; i++) {
     desktop.writeConfig("Image", "file:///usr/share/wallpapers/monOS-Daylight/");
 }
 
-// --- Top bar: full width, ~32 px at the default font size, not floating ---
+// Panel Colorizer styles the panel it sits in; it hides itself outside Edit
+// Mode (hideWidget). Keys: package/contents/config/main.xml of the widget.
+// Skipped when the widget is not installed, so the layout never shows a
+// "widget not found" placeholder.
+var colorizerInstalled = fileExists("/usr/share/plasma/plasmoids/luisbocanegra.panel.colorizer/metadata.json");
+function addColorizer(panel, settings, islands) {
+    if (!colorizerInstalled) {
+        return;
+    }
+    var colorizer = panel.addWidget("luisbocanegra.panel.colorizer");
+    colorizer.currentConfigGroup = ["General"];
+    colorizer.writeConfig("isEnabled", true);
+    colorizer.writeConfig("hideWidget", true);
+    // Islands are separated by panel spacers (the default separator widget),
+    // which get no background themselves.
+    colorizer.writeConfig("islandsEnabled", islands);
+    colorizer.writeConfig("islandSeparatorWidget", "org.kde.plasma.panelspacer");
+    colorizer.writeConfig("globalSettings", JSON.stringify(settings));
+}
+
+// --- Top bar: floating, full width, ~36 px at the default font size ---
 // It never hides, so it reserves its space: maximized and tiled windows
 // (Krohnkite included) stay below it.
 var bar = new Panel;
 bar.location = "top";
-bar.floating = false;
+bar.floating = true;
 bar.hiding = "none";
 bar.lengthMode = "fill";
-// Translucent, so KWin's blur effect shows behind it.
+// Translucent, so KWin's blur effect shows behind it (fallback look when
+// Panel Colorizer is missing).
 bar.opacity = "translucent";
-bar.height = 2 * Math.ceil(gridUnit * 1.75 / 2);
+bar.height = 2 * Math.ceil(gridUnit);
 
+// Island 1: launcher and virtual desktops.
 var kickoff = bar.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
 kickoff.writeConfig("icon", "monos-small");
 
-// Virtual desktops (4, see /etc/xdg/kwinrc). The pager defaults are already
-// compact: plain boxes, no names or window icons.
-bar.addWidget("org.kde.plasma.pager");
+// Virtual desktops (4, see /etc/xdg/kwinrc) labelled 1-4. displayedText:
+// 0 Number, 1 Name, 2 None (pager main.xml); no window outlines or icons.
+var pager = bar.addWidget("org.kde.plasma.pager");
+pager.currentConfigGroup = ["General"];
+pager.writeConfig("displayedText", 0);
+pager.writeConfig("showWindowOutlines", false);
+pager.writeConfig("showWindowIcons", false);
 
 // Two expanding spacers center the clock on the bar (panelspacer computes
-// equal sizes from the widgets on both sides).
+// equal sizes from the widgets on both sides) and split the islands.
 bar.addWidget("org.kde.plasma.panelspacer");
 
-// "Wed 1 Oct  19:40": date beside the time, time format from the locale.
+// Island 2: "Thu 1 Oct   14:52", 24-hour time, calendar on click.
+// use24hFormat: 0 12-hour, 1 region default, 2 24-hour. The date ends in an
+// em space plus a word joiner: Qt drops trailing spaces from a label's
+// width, the joiner keeps the space, so date and time never touch.
 var clock = bar.addWidget("org.kde.plasma.digitalclock");
 clock.currentConfigGroup = ["Appearance"];
 clock.writeConfig("showDate", true);
 clock.writeConfig("dateFormat", "custom");
-clock.writeConfig("customDateFormat", "ddd d MMM");
+clock.writeConfig("customDateFormat", "ddd d MMM\u2003\u2060");
 clock.writeConfig("dateDisplayFormat", 1); // 0 Adaptive, 1 BesideTime, 2 BelowTime
+clock.writeConfig("use24hFormat", 2);
 
 bar.addWidget("org.kde.plasma.panelspacer");
 
-// Compact CPU and memory monitors (Plasma's own pie-chart applets).
-bar.addWidget("org.kde.plasma.systemmonitor.cpu");
-bar.addWidget("org.kde.plasma.systemmonitor.memory");
+// Island 3: CPU and memory as labelled text ("CPU 3%  RAM 21%"), the tray
+// and a session button. The plain org.kde.plasma.systemmonitor applet loads
+// no preset, so this face and these sensors are kept (libksysguard
+// SensorFaceController: [Appearance] chartFace/title, [Sensors] JSON lists,
+// [SensorLabels], [SensorColors]).
+var monitor = bar.addWidget("org.kde.plasma.systemmonitor");
+monitor.currentConfigGroup = ["Appearance"];
+monitor.writeConfig("chartFace", "org.kde.ksysguard.textonly");
+monitor.writeConfig("title", "System");
+monitor.currentConfigGroup = ["Sensors"];
+monitor.writeConfig("highPrioritySensorIds", '["cpu/all/usage","memory/physical/usedPercent"]');
+monitor.writeConfig("lowPrioritySensorIds", "[]");
+monitor.writeConfig("totalSensors", "[]");
+monitor.currentConfigGroup = ["SensorLabels"];
+monitor.writeConfig("cpu/all/usage", "CPU");
+monitor.writeConfig("memory/physical/usedPercent", "RAM");
+monitor.currentConfigGroup = ["SensorColors"];
+monitor.writeConfig("cpu/all/usage", "10,90,214");
+monitor.writeConfig("memory/physical/usedPercent", "124,58,237");
+
 bar.addWidget("org.kde.plasma.systemtray");
+
+// One button that opens the logout screen (log out, restart, shut down).
+var session = bar.addWidget("org.kde.plasma.lock_logout");
+session.currentConfigGroup = ["General"];
+session.writeConfig("show_lockScreen", false);
+session.writeConfig("show_requestLogoutScreen", true);
+
+// Islands: surface of the color scheme (View background), slightly translucent,
+// 1 px accent outline, 8 px corners; hover/open popups lift the widget.
+var barStyle = {
+    "nativePanel": {
+        "background": {
+            "enabled": false,
+            "opacity": 1.0,
+            "shadow": false
+        }
+    },
+    "widgets": {
+        "expanded": {
+            "backgroundColor": {
+                "alpha": 0.85,
+                "enabled": true,
+                "sourceType": 1,
+                "systemColor": "alternateBackgroundColor",
+                "systemColorSet": "Window"
+            },
+            "blurBehind": true,
+            "border": {
+                "color": {
+                    "alpha": 0.85,
+                    "enabled": true,
+                    "sourceType": 1,
+                    "systemColor": "highlightColor",
+                    "systemColorSet": "View"
+                },
+                "customSides": false,
+                "enabled": true,
+                "width": 1
+            },
+            "enabled": true,
+            "opacity": 1.0,
+            "spacing": 4
+        },
+        "hovered": {
+            "backgroundColor": {
+                "alpha": 0.85,
+                "enabled": true,
+                "sourceType": 1,
+                "systemColor": "alternateBackgroundColor",
+                "systemColorSet": "Window"
+            },
+            "blurBehind": true,
+            "enabled": true,
+            "opacity": 1.0,
+            "spacing": 4
+        },
+        "normal": {
+            "backgroundColor": {
+                "alpha": 0.85,
+                "enabled": true,
+                "sourceType": 1,
+                "systemColor": "backgroundColor",
+                "systemColorSet": "View"
+            },
+            "blurBehind": true,
+            "border": {
+                "color": {
+                    "alpha": 0.35,
+                    "enabled": true,
+                    "sourceType": 1,
+                    "systemColor": "highlightColor",
+                    "systemColorSet": "View"
+                },
+                "customSides": false,
+                "enabled": true,
+                "width": 1
+            },
+            "enabled": true,
+            "margin": {
+                "enabled": true,
+                "side": {
+                    "bottom": 2,
+                    "left": 6,
+                    "right": 6,
+                    "top": 2
+                }
+            },
+            "opacity": 1.0,
+            "radius": {
+                "corner": {
+                    "bottomLeft": 8,
+                    "bottomRight": 8,
+                    "topLeft": 8,
+                    "topRight": 8
+                },
+                "enabled": true
+            },
+            "shadow": {
+                "background": {
+                    "color": {
+                        "alpha": 0.1,
+                        "custom": "#000000",
+                        "enabled": true,
+                        "sourceType": 0
+                    },
+                    "enabled": true,
+                    "size": 6,
+                    "xOffset": 0,
+                    "yOffset": 1
+                }
+            },
+            "spacing": 4
+        }
+    }
+};
+addColorizer(bar, barStyle, true);
 
 // --- Dock: floating, centered, as wide as its icons ---
 // "dodgewindows": visible until a window overlaps it, then it slides away
@@ -70,9 +236,88 @@ dock.opacity = "translucent";
 // ~48 px icons at the default font size (gridUnit 18 -> 60 px thick).
 dock.height = 2 * Math.ceil(gridUnit * 3.25 / 2);
 
+// Full-screen application grid (Application Dashboard).
+var grid = dock.addWidget("org.kde.plasma.kickerdash");
+grid.currentConfigGroup = ["General"];
+grid.writeConfig("icon", "applications-all-symbolic");
+
+dock.addWidget("org.kde.plasma.marginsseparator");
+
+// Task manager keys: plasma-desktop applets/taskmanager/main.xml. Running
+// indicators, badges and progress (Unity launcher API) are always on.
 var tasks = dock.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
 tasks.writeConfig("launchers", ["applications:kitty.desktop", "applications:org.kde.dolphin.desktop", "applications:firefox.desktop", "applications:code-oss.desktop", "applications:obsidian.desktop"]);
+tasks.writeConfig("showToolTips", true);       // window thumbnails on hover
+tasks.writeConfig("highlightWindows", true);   // hovering a thumbnail highlights its window
+tasks.writeConfig("indicateAudioStreams", true);
+tasks.writeConfig("interactiveMute", true);
+tasks.writeConfig("tooltipControls", true);    // media controls in the tooltip
+tasks.writeConfig("groupingStrategy", 1);      // 0 none, 1 by program
+tasks.writeConfig("groupedTaskVisualization", 1); // click on a group: thumbnails
+tasks.writeConfig("middleClickAction", 2);     // NewInstance
+tasks.writeConfig("wheelEnabled", 2);          // wheel cycles the hovered app's windows
+tasks.writeConfig("iconSpacing", 3);           // 0 small, 1 normal, 3 large
 
 dock.addWidget("org.kde.plasma.marginsseparator");
 dock.addWidget("org.kde.plasma.trash");
+
+// Dock: one rounded surface with the same colors as the islands.
+var dockStyle = {
+    "nativePanel": {
+        "background": {
+            "enabled": false,
+            "opacity": 1.0,
+            "shadow": false
+        }
+    },
+    "panel": {
+        "normal": {
+            "backgroundColor": {
+                "alpha": 0.85,
+                "enabled": true,
+                "sourceType": 1,
+                "systemColor": "backgroundColor",
+                "systemColorSet": "View"
+            },
+            "blurBehind": true,
+            "border": {
+                "color": {
+                    "alpha": 0.35,
+                    "enabled": true,
+                    "sourceType": 1,
+                    "systemColor": "highlightColor",
+                    "systemColorSet": "View"
+                },
+                "customSides": false,
+                "enabled": true,
+                "width": 1
+            },
+            "enabled": true,
+            "radius": {
+                "corner": {
+                    "bottomLeft": 8,
+                    "bottomRight": 8,
+                    "topLeft": 8,
+                    "topRight": 8
+                },
+                "enabled": true
+            },
+            "shadow": {
+                "background": {
+                    "color": {
+                        "alpha": 0.1,
+                        "custom": "#000000",
+                        "enabled": true,
+                        "sourceType": 0
+                    },
+                    "enabled": true,
+                    "size": 6,
+                    "xOffset": 0,
+                    "yOffset": 1
+                }
+            }
+        }
+    }
+};
+addColorizer(dock, dockStyle, false);

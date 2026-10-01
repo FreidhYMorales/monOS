@@ -1,0 +1,108 @@
+{
+  "globalSettings": {
+    "nativePanel": {
+      "background": {
+        "enabled": false,
+        "opacity": 1.0,
+        "shadow": false
+      }
+    },
+    "widgets": {
+      "expanded": {
+        "backgroundColor": {
+          "alpha": 0.88,
+          "enabled": true,
+          "sourceType": 1,
+          "systemColor": "alternateBackgroundColor",
+          "systemColorSet": "Window"
+        },
+        "blurBehind": true,
+        "border": {
+          "color": {
+            "alpha": 0.85,
+            "enabled": true,
+            "sourceType": 1,
+            "systemColor": "highlightColor",
+            "systemColorSet": "View"
+          },
+          "customSides": false,
+          "enabled": true,
+          "width": 1
+        },
+        "enabled": true,
+        "opacity": 1.0,
+        "spacing": 4
+      },
+      "hovered": {
+        "backgroundColor": {
+          "alpha": 0.88,
+          "enabled": true,
+          "sourceType": 1,
+          "systemColor": "alternateBackgroundColor",
+          "systemColorSet": "Window"
+        },
+        "blurBehind": true,
+        "enabled": true,
+        "opacity": 1.0,
+        "spacing": 4
+      },
+      "normal": {
+        "backgroundColor": {
+          "alpha": 0.88,
+          "enabled": true,
+          "sourceType": 1,
+          "systemColor": "backgroundColor",
+          "systemColorSet": "View"
+        },
+        "blurBehind": true,
+        "border": {
+          "color": {
+            "alpha": 0.3,
+            "enabled": true,
+            "sourceType": 1,
+            "systemColor": "highlightColor",
+            "systemColorSet": "View"
+          },
+          "customSides": false,
+          "enabled": true,
+          "width": 1
+        },
+        "enabled": true,
+        "margin": {
+          "enabled": true,
+          "side": {
+            "bottom": 2,
+            "left": 6,
+            "right": 6,
+            "top": 2
+          }
+        },
+        "opacity": 1.0,
+        "radius": {
+          "corner": {
+            "bottomLeft": 8,
+            "bottomRight": 8,
+            "topLeft": 8,
+            "topRight": 8
+          },
+          "enabled": true
+        },
+        "shadow": {
+          "background": {
+            "color": {
+              "alpha": 0.35,
+              "custom": "#000000",
+              "enabled": true,
+              "sourceType": 0
+            },
+            "enabled": true,
+            "size": 6,
+            "xOffset": 0,
+            "yOffset": 1
+          }
+        },
+        "spacing": 4
+      }
+    }
+  }
+}
