@@ -1,4 +1,6 @@
-/* monOS installation slideshow (Calamares 3.4, Qt 6, slideshow API 2). */
+/* monOS installation slideshow (Calamares 3.4, Qt 6, slideshow API 2).
+ * The color properties are rewritten by branding/tools/gen-themes.py from
+ * branding/palette/monos.toml; background.jpg comes from install-branding.sh. */
 
 import QtQuick
 import calamares.slideshow 1.0
@@ -7,9 +9,9 @@ Presentation
 {
     id: presentation
 
-    readonly property color bgColor: "#0d0f14"
-    readonly property color accentColor: "#0C6BFA"
-    readonly property color fgColor: "#e5e7eb"
+    readonly property color bgColor: "#0B0D12"
+    readonly property color accentColor: "#3D8BFF"
+    readonly property color fgColor: "#E6E9EF"
 
     function nextSlide() {
         presentation.goToNextSlide();
@@ -23,9 +25,24 @@ Presentation
         onTriggered: nextSlide()
     }
 
+    // Background: brand color, the monOS Nebula wallpaper and a dark veil
+    // that keeps the text readable (fg on veil >= 7:1).
     Rectangle {
         anchors.fill: parent
         color: presentation.bgColor
+        z: -3
+    }
+    Image {
+        anchors.fill: parent
+        source: "background.jpg"
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        z: -2
+    }
+    Rectangle {
+        anchors.fill: parent
+        color: presentation.bgColor
+        opacity: 0.55
         z: -1
     }
 

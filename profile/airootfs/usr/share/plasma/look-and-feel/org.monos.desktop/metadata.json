@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "monOS Project"
+            }
+        ],
+        "Category": "",
+        "Description": "monOS dark desktop: brand colors, Klassy style and window decorations, Yamis monochrome icons, Bibata cursor and a floating dock-style panel",
+        "Id": "org.monos.desktop",
+        "License": "GPL-2.0-or-later",
+        "Name": "monOS",
+        "Version": "1.0",
+        "Website": "https://github.com/FreidhYMorales/monOS"
+    },
+    "X-Plasma-APIVersion": "2"
+}

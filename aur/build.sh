@@ -18,10 +18,17 @@ set -euo pipefail
 
 # Build order matters: AUR dependencies must come before the packages that
 # need them. ckbcomp is used by Calamares' keyboard page (layout preview).
+# None of the theming packages depends on another AUR package. klassy is
+# built from source (its PKGBUILD also produces klassy-qt5, which is not
+# installed on the ISO).
 AUR_PACKAGES=(
     ckbcomp
     calamares
     yay-bin
+    yamis-icon-theme-git
+    klassy
+    bibata-cursor-theme-bin
+    kwin-scripts-krohnkite
 )
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

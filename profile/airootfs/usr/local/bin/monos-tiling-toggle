@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# monOS: turn KWin dynamic tiling (Krohnkite KWin script) on or off.
+#
+# Usage: monos-tiling-toggle [on|off]   (no argument: toggle)
+#
+# Default shortcut: Meta+Shift+T (X-KDE-Shortcuts of
+# /usr/local/share/applications/monos-tiling-toggle.desktop).
+#
+# Krohnkite has no "toggle tiling" action and only registers its own
+# shortcuts while it is loaded, so this flips [Plugins] krohnkiteEnabled in the
+# user's kwinrc (the system default in /etc/xdg/kwinrc is false) and asks KWin
+# to (un)load scripts: org.kde.kwin.Scripting.start() re-reads [Plugins],
+# loads enabled scripts and unloads disabled ones.
+set -euo pipefail
+
+key=krohnkiteEnabled
+
+current="$(kreadconfig6 --file kwinrc --group Plugins --key "${key}" --default false)"
+case "${1:-toggle}" in
+    on) wanted=true ;;
+    off) wanted=false ;;
+    toggle) if [[ "${current}" == "true" ]]; then wanted=false; else wanted=true; fi ;;
+    *)
+        echo "usage: ${0##*/} [on|off]" >&2
+        exit 2
+        ;;
+esac
+
+kwriteconfig6 --file kwinrc --group Plugins --key "${key}" --type bool "${wanted}"
+busctl --user call org.kde.KWin /Scripting org.kde.kwin.Scripting start
+
+if [[ "${wanted}" == "true" ]]; then
+    message="Tiling on (Krohnkite)"
+else
+    message="Tiling off"
+fi
+# On-screen display of Plasma; best effort (no Plasma session, no OSD).
+busctl --user call org.kde.plasmashell /org/kde/osdService org.kde.osdService \
+    showText ss dialog-tile-clones "${message}" >/dev/null 2>&1 || true
+echo "${message}"

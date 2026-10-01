@@ -1,0 +1,26 @@
+# remove from airootfs!
+# monOS: select the "monos" Plymouth theme while the ISO is built.
+#
+# /etc/plymouth/plymouthd.conf is owned by the plymouth package, so it cannot
+# be shipped in airootfs (mkarchiso copies airootfs before pacstrap and pacman
+# refuses to overwrite it). The theme files themselves are already in place
+# (/usr/share/plymouth/themes/monos, from airootfs), so this hook only writes
+# "[Daemon] Theme=monos" to plymouthd.conf. Its name sorts before
+# 90-mkinitcpio-install.hook, so the live initramfs is built with the theme.
+# The installed system is a copy of the live root filesystem and keeps the
+# setting; Calamares' initcpio module rebuilds its initramfs with it.
+# Like the other build-only hooks, zzzz99-remove-custom-hooks-from-airootfs
+# deletes this file at the end of the transaction.
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = plymouth
+
+[Action]
+Description = Setting the monOS Plymouth theme...
+When = PostTransaction
+Depends = plymouth
+# PLYMOUTH_PLUGIN_PATH avoids a call to the plymouth client inside the chroot.
+Exec = /usr/bin/env PLYMOUTH_PLUGIN_PATH=/usr/lib/plymouth/ /usr/bin/plymouth-set-default-theme monos

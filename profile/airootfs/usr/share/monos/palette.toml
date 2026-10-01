@@ -1,0 +1,61 @@
+# monOS brand palette: the single source of truth for every theme.
+#
+# branding/tools/gen-themes.py renders all terminal, editor, KDE, GRUB and
+# installer colors from this file. Edit colors here, then run:
+#
+#   python3 branding/tools/gen-themes.py
+#   ./branding/tools/install-branding.sh   # images that embed colors
+#
+# Contrast targets (WCAG 2.x, measured on ui.bg): fg >= 7:1, fg-dim and
+# muted >= 4.5:1, every ANSI text color >= 4.5:1 (ansi.black excepted: it is
+# a background shade). gen-themes.py --check prints the ratios.
+
+[meta]
+name = "monOS"
+variant = "dark"
+
+# Fixed brand colors (logo and artwork). Not all of them are text colors:
+# blue on bg is only 4.2:1, use ui.accent-text for text/links on dark.
+[brand]
+background = "#0B0D12"
+blue = "#0C6BFA"
+violet = "#7C3AED"
+shadow = "#4C4D4F"
+white = "#FCFCFC"
+
+# Dark UI scale, darkest to lightest surface, then text.
+[ui]
+bg = "#0B0D12"          # window/terminal background (brand background)
+surface = "#12151C"     # views, editor gutter, inactive panes
+surface2 = "#1A1E27"    # windows, cursor line, status bars
+overlay = "#232833"     # buttons, popups, menus
+border = "#2E3440"      # separators and inactive borders
+fg = "#E6E9EF"          # main text
+fg-dim = "#A9B1C1"      # secondary text
+muted = "#7D8699"       # comments, placeholders, disabled text
+selection = "#1F3B6E"   # text selection background (fg stays readable)
+accent = "#0C6BFA"      # brand blue: highlights, active borders, buttons
+accent-fg = "#FCFCFC"   # text on accent (4.55:1)
+accent-text = "#3D8BFF" # brand blue usable as text on bg
+violet = "#7C3AED"      # secondary brand color (backgrounds, gradients)
+violet-text = "#9B6BFF" # violet usable as text on bg
+cursor = "#6AA6FF"
+
+# 16-color terminal palette. Order: normal, bright.
+[ansi]
+black = "#1A1E27"
+red = "#F2555A"
+green = "#3FD68A"
+yellow = "#F5C451"
+blue = "#3D8BFF"
+magenta = "#9B6BFF"
+cyan = "#22C3E6"
+white = "#C8CEDA"
+bright-black = "#737D90"
+bright-red = "#FF7A7E"
+bright-green = "#6BE6A6"
+bright-yellow = "#FFD978"
+bright-blue = "#6AA6FF"
+bright-magenta = "#B894FF"
+bright-cyan = "#5CD8F0"
+bright-white = "#F5F7FA"

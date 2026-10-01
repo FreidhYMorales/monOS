@@ -143,6 +143,10 @@ breeze-gtk
 xdg-desktop-portal-kde
 sddm
 sddm-kcm
+# Icon theme of the monOS Global Theme (Papirus-Dark)
+papirus-icon-theme
+# Boot splash (theme "monos", see /usr/share/plymouth/themes/monos)
+plymouth
 dolphin
 kate
 spectacle
@@ -244,6 +248,16 @@ firefox
 calamares
 ckbcomp
 yay-bin
+
+# --- Desktop theming from the local [monos] repository (AUR, aur/build.sh) ---
+# Yamis monochrome icons (icon theme of the monOS Global Theme)
+yamis-icon-theme-git
+# Klassy: application style and window decoration
+klassy
+# Bibata cursors (Bibata-Modern-Ice is the default)
+bibata-cursor-theme-bin
+# Krohnkite dynamic tiling KWin script (installed, disabled by default)
+kwin-scripts-krohnkite
 
 # --- Installed system: kernels, boot and snapshots ---
 # linux-lts is a fallback kernel. mkarchiso copies every /boot/vmlinuz-* to

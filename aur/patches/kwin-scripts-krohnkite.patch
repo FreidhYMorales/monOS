@@ -1,0 +1,20 @@
+diff --git a/PKGBUILD b/PKGBUILD
+index b411f73..f04ed91 100644
+--- a/PKGBUILD
++++ b/PKGBUILD
+@@ -8,9 +8,13 @@ url="https://codeberg.org/anametologin/krohnkite"
+ license=('MIT')
+ arch=('any')
+ 
+-source=("https://codeberg.org/anametologin/krohnkite/archive/$pkgver.tar.gz"
++makedepends=('git')
++# monOS: the Codeberg archive tarball is regenerated (its checksum changed) and
++# only provides LICENSE; take it from the git commit of the 0.9.9.2 tag instead
++# (the same commit the release .kwinscript was built from: "1d7fd74").
++source=("$_pkgname::git+https://codeberg.org/anametologin/krohnkite.git#commit=1d7fd742edd58963c94a158217440b27dad963ef"
+ "https://codeberg.org/anametologin/Krohnkite/releases/download/$pkgver/$_pkgname.kwinscript")
+-sha256sums=('618a5d7b6b552026b6ed4db62422f3ec82969e989d4b5d9c816c405e4924e138'
++sha256sums=('SKIP'
+             '42f7f66531d366c74b5fc860381da3517ccb4cdccd1f80c122fcab6e9a8fcf7e')
+ 
+ noextract=("$_pkgname.kwinscript")

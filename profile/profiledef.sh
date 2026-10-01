@@ -31,6 +31,8 @@ file_permissions=(
   # /home/liveuser/Desktop/monos-install.desktop gets 1000:1000:750 through
   # the recursive "/home/liveuser/" entry (executable, so Plasma trusts it).
   ["/usr/local/bin/monos-install"]="0:0:755"
+  # Toggles the Krohnkite tiling KWin script (Meta+Shift+T).
+  ["/usr/local/bin/monos-tiling-toggle"]="0:0:755"
   ["/etc/calamares/scripts/monos-target-cleanup.sh"]="0:0:755"
   ["/etc/calamares/scripts/monos-snapper-setup.sh"]="0:0:755"
 )

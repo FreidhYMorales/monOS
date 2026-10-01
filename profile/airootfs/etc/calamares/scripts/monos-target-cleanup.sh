@@ -17,7 +17,9 @@
 #    /boot/vmlinuz-<pkgbase>. We do the same for every installed kernel
 #    (linux and linux-lts) and recreate the default mkinitcpio presets from
 #    mkinitcpio's template. This does not depend on the ISO being mounted.
-# 3. Initializes a fresh pacman keyring (on the live system it is a tmpfs, so
+# 3. Installs the monOS GRUB theme into /boot/grub/themes/monos (non-sparse
+#    copy; grubcfg points GRUB_THEME at it).
+# 4. Initializes a fresh pacman keyring (on the live system it is a tmpfs, so
 #    the copied /etc/pacman.d/gnupg is empty or unusable).
 set -euo pipefail
 
@@ -71,9 +73,9 @@ for unit in "${live_units[@]}"; do
     find "${ROOT}/etc/systemd/system" -name "${unit}" \( -type l -o -type f \) -delete
 done
 
-# Keep the Breeze SDDM theme that the removed autologin drop-in also set.
-install -d -m 0755 -- "${ROOT}/etc/sddm.conf.d"
-printf '[Theme]\nCurrent=breeze\n' >"${ROOT}/etc/sddm.conf.d/10-monos-theme.conf"
+# The SDDM theme (Breeze with the monOS background) is set by
+# /etc/sddm.conf.d/10-monos-theme.conf, shipped in the live filesystem and
+# kept on the target; only the autologin drop-in above is live-only.
 
 # --- 2. Kernels and mkinitcpio presets ----------------------------------------
 log "restoring kernels in /boot"
@@ -115,7 +117,22 @@ for ucode in amd-ucode.img intel-ucode.img; do
     fi
 done
 
-# --- 3. pacman keyring --------------------------------------------------------
+# --- 3. GRUB theme -------------------------------------------------------------
+# grubcfg (after this script) sets GRUB_THEME=/boot/grub/themes/monos/theme.txt.
+# Copy the theme into /boot as NON-sparse files, for the same reason as the
+# kernels above: files unpacked from the squashfs may end in a hole, which
+# GRUB's btrfs driver cannot read.
+log "installing the GRUB theme"
+if [[ -f "${ROOT}/usr/share/grub/themes/monos/theme.txt" ]]; then
+    rm -rf -- "${ROOT:?}/boot/grub/themes/monos"
+    install -d -m 0755 -- "${ROOT}/boot/grub/themes"
+    cp -r --sparse=never -- "${ROOT}/usr/share/grub/themes/monos" "${ROOT}/boot/grub/themes/monos"
+    chmod -R u=rwX,go=rX -- "${ROOT}/boot/grub/themes/monos"
+else
+    log "warning: /usr/share/grub/themes/monos missing, GRUB will use its default look"
+fi
+
+# --- 4. pacman keyring --------------------------------------------------------
 log "initializing the pacman keyring"
 rm -rf -- "${ROOT:?}/etc/pacman.d/gnupg"
 in_target pacman-key --init
