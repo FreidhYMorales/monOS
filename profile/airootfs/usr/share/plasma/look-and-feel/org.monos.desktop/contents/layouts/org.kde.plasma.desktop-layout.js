@@ -117,11 +117,14 @@ if (fileExists("/usr/share/plasma/plasmoids/org.kde.windowtitle/metadata.json"))
     title.writeConfig("altTxt", "");         // no active window: no text
     title.writeConfig("noIcon", true);       // ... and no icon
     title.writeConfig("activityIcon", false);
-    title.writeConfig("visible", true);      // app icon beside the name
-    title.writeConfig("customSize", 20);     // icon size, px
+    // No icon: its slot is always as wide as the bar is tall, which left an
+    // empty square in the island on the bare desktop (the dock already shows
+    // the app icon). Width follows the text (lengthKind 0) so the island
+    // shrinks to the dots when no window is active; %a app names are short.
+    title.writeConfig("visible", false);
     title.writeConfig("fontSize", 13);
     title.writeConfig("isBold", false);
-    title.writeConfig("lengthKind", 2);
+    title.writeConfig("lengthKind", 0);
     title.writeConfig("fixedLength", 360);
     title.writeConfig("elidePos", 3);
     title.writeConfig("firstSpace", 4);
@@ -167,9 +170,12 @@ monitor.currentConfigGroup = ["Sensors"];
 monitor.writeConfig("highPrioritySensorIds", '["cpu/all/usage","memory/physical/usedPercent"]');
 monitor.writeConfig("lowPrioritySensorIds", "[]");
 monitor.writeConfig("totalSensors", "[]");
+// Labels are single Nerd Font glyphs (nf-oct-cpu, nf-md-memory): the panel
+// gives this applet only its minimum width, where text labels such as "CPU"
+// get elided to "C…", while one glyph fits.
 monitor.currentConfigGroup = ["SensorLabels"];
-monitor.writeConfig("cpu/all/usage", "CPU");
-monitor.writeConfig("memory/physical/usedPercent", "RAM");
+monitor.writeConfig("cpu/all/usage", "\uf4bc");
+monitor.writeConfig("memory/physical/usedPercent", "\u{f035b}");
 monitor.currentConfigGroup = ["SensorColors"];
 monitor.writeConfig("cpu/all/usage", "61,139,255");
 monitor.writeConfig("memory/physical/usedPercent", "155,107,255");
