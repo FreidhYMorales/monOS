@@ -7,6 +7,10 @@
 # policies in /etc/default/ufw already are deny incoming, allow outgoing,
 # deny forwarding. The installed system is a copy of the live root filesystem
 # and keeps the setting.
+#
+# Before enabling it, open the KDE Connect ports (1714-1764 TCP/UDP) so phones
+# can pair. `ufw allow` only rewrites /etc/ufw/user*.rules while ufw is still
+# disabled (no iptables calls), which is why it runs before the sed.
 
 [Trigger]
 Operation = Install
@@ -15,7 +19,7 @@ Type = Package
 Target = ufw
 
 [Action]
-Description = Enabling the ufw firewall...
+Description = Enabling the ufw firewall (KDE Connect ports open)...
 When = PostTransaction
 Depends = sed
-Exec = /usr/bin/sed -i -e "s/^ENABLED=no$/ENABLED=yes/" /etc/ufw/ufw.conf
+Exec = /bin/sh -c '/usr/bin/ufw allow 1714:1764/tcp comment "KDE Connect" >/dev/null && /usr/bin/ufw allow 1714:1764/udp comment "KDE Connect" >/dev/null && /usr/bin/sed -i -e "s/^ENABLED=no$/ENABLED=yes/" /etc/ufw/ufw.conf'
