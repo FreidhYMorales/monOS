@@ -7,10 +7,10 @@
             }
         ],
         "Category": "",
-        "Description": "monOS dark desktop: brand colors, Klassy style and window decorations, Yamis monochrome icons, Bibata cursor, top bar and floating dock",
-        "Id": "org.monos.desktop",
+        "Description": "monOS light desktop: MonosLight colors, Klassy style and window decorations, Yamis monochrome icons, Bibata Classic cursor, top bar and floating dock",
+        "Id": "org.monos.desktop.light",
         "License": "GPL-2.0-or-later",
-        "Name": "monOS",
+        "Name": "monOS Light",
         "Version": "1.0",
         "Website": "https://github.com/FreidhYMorales/monOS"
     },

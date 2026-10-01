@@ -41,8 +41,16 @@ ANSI_NAMES = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "whi
 
 LOOK_AND_FEEL_ID = "org.monos.desktop"
 COLOR_SCHEME = "MonosDark"
-ICON_THEME = "yet-another-monochrome-icon-set"  # Yamis (AUR); inherits Papirus-Dark
+# monOS Light: second Global Theme with the same layout, Klassy and icons.
+LOOK_AND_FEEL_LIGHT_ID = "org.monos.desktop.light"
+COLOR_SCHEME_LIGHT = "MonosLight"
+# Yamis (AUR); inherits Papirus-Dark. 4076 of its 4107 SVG files (and the
+# Papirus-Dark fallbacks) draw with class="ColorScheme-Text"/currentColor and
+# the theme sets FollowsColorScheme=true, so KDE recolors them for MonosLight
+# too: the same icon theme serves both variants.
+ICON_THEME = "yet-another-monochrome-icon-set"
 WALLPAPER_DEFAULT = "monOS-Orbit"
+WALLPAPER_LIGHT = "monOS-Daylight"
 KICKOFF_ICON = "monos-small"
 FIXED_FONT = "JetBrainsMono Nerd Font,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 # UI fonts: the "Propo" variant keeps Nerd icons at their natural width, which
@@ -50,11 +58,14 @@ FIXED_FONT = "JetBrainsMono Nerd Font,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 UI_FONT = "JetBrainsMono Nerd Font Propo,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 SMALL_FONT = "JetBrainsMono Nerd Font Propo,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1"
 TITLE_FONT = "JetBrainsMono Nerd Font Propo,10,-1,5,600,0,0,0,0,0,0,0,0,0,0,1"
+# Dock launchers (desktop ids checked against the Arch packages: kitty,
+# dolphin, firefox, code -> code-oss.desktop, obsidian -> obsidian.desktop).
 PINNED_APPS = [
     "applications:kitty.desktop",
     "applications:org.kde.dolphin.desktop",
     "applications:firefox.desktop",
     "applications:code-oss.desktop",
+    "applications:obsidian.desktop",
 ]
 
 # Klassy (AUR "klassy"): Qt style key from kstyle/breeze.json ("Keys": ["Klassy"]),
@@ -63,8 +74,10 @@ PINNED_APPS = [
 WIDGET_STYLE = "Klassy"
 DECORATION_LIBRARY = "org.kde.klassy"
 DECORATION_THEME = "Klassy"
-# Bibata (AUR "bibata-cursor-theme-bin"): white cursor, visible on the dark UI.
+# Bibata (AUR "bibata-cursor-theme-bin"): white cursor, visible on the dark UI;
+# the black variant for monOS Light.
 CURSOR_THEME = "Bibata-Modern-Ice"
+CURSOR_THEME_LIGHT = "Bibata-Modern-Classic"
 CURSOR_SIZE = 24
 # < 1 makes every Plasma/KWin animation faster (1.0 = Plasma default).
 ANIMATION_DURATION_FACTOR = 0.7
@@ -88,6 +101,11 @@ SHIFTED_DIGITS = {
     3: ["#", "·"],
     4: ["$"],
 }
+# SDDM greeter theme (/usr/share/sddm/themes/monos, Qt 6 QML). Its
+# background is Nebula: the Orbit mascot sits in the middle of the screen,
+# right where the login form goes.
+SDDM_THEME = "monos"
+SDDM_WALLPAPER = "monOS-Nebula"
 VSCODE_EXTENSION = "monos-theme"
 VSCODE_THEME_NAME = "monOS"
 
@@ -320,6 +338,8 @@ allow_remote_control socket-only
 listen_on            unix:/tmp/kitty-{{kitty_pid}}
 
 # --- Colors ---
+# monOS dark. kitty does not follow the Plasma Global Theme; for monOS Light
+# run `kitty +kitten themes` and pick "monOS Light" (~/.config/kitty/themes).
 foreground            {u['fg']}
 background            {u['bg']}
 selection_foreground  {u['fg']}
@@ -348,6 +368,50 @@ mark3_background {p.ansi['yellow']}
 {colors}
 """
     write(SKEL_CFG / "kitty" / "kitty.conf", content)
+    gen_kitty_themes(p)
+
+
+def gen_kitty_themes(p: Palette) -> None:
+    """monOS / monOS Light as user themes for `kitty +kitten themes`.
+
+    The kitten lists every ~/.config/kitty/themes/*.conf. Terminals do not
+    follow the Plasma Global Theme: kitty.conf keeps the dark colors, and
+    choosing "monOS Light" in the kitten adds an include to kitty.conf. These
+    are not kitty's *.auto.conf files, so nothing switches automatically.
+    """
+    for light in (False, True):
+        u = p.light_ui if light else p.ui
+        x = p.light_ansi if light else p.ansi
+        a = [x[n] for n in ANSI_NAMES] + [x[f"bright-{n}"] for n in ANSI_NAMES]
+        name = "monOS Light" if light else "monOS"
+        colors = "\n".join(f"color{i:<2} {a[i]}" for i in range(16))
+        content = f"""{header('#')}## name: {name}
+## author: monOS Project
+## license: GPL-2.0-or-later
+## blurb: monOS {'light' if light else 'dark'} palette (kitty +kitten themes)
+
+foreground            {u['fg']}
+background            {u['bg']}
+selection_foreground  {u['fg']}
+selection_background  {u['selection']}
+cursor                {u['cursor']}
+cursor_text_color     {u['bg']}
+url_color             {x['cyan']}
+
+active_border_color   {u['accent']}
+inactive_border_color {u['border']}
+bell_border_color     {x['yellow']}
+
+tab_bar_background      {u['surface']}
+active_tab_foreground   {u['accent-fg']}
+active_tab_background   {u['accent']}
+inactive_tab_foreground {u['fg-dim']}
+inactive_tab_background {u['surface2']}
+
+{colors}
+"""
+        filename = "monos-light.conf" if light else "monos.conf"
+        write(SKEL_CFG / "kitty" / "themes" / filename, content)
 
 
 def gen_foot(p: Palette) -> None:
@@ -1456,39 +1520,59 @@ pcall(vim.cmd.colorscheme, "monos")
 # --------------------------------------------------------------------------
 # KDE Plasma
 # --------------------------------------------------------------------------
-def kde_color_groups(p: Palette) -> str:
-    u, x = p.ui, p.ansi
-    fg_common = {
-        "ForegroundNormal": u["fg"],
-        "ForegroundInactive": u["fg-dim"],
-        "ForegroundActive": x["blue"],
-        "ForegroundLink": x["blue"],
-        "ForegroundVisited": x["bright-magenta"],
-        "ForegroundNegative": x["red"],
-        "ForegroundNeutral": x["yellow"],
-        "ForegroundPositive": x["green"],
-        "DecorationFocus": u["accent"],
-        "DecorationHover": x["blue"],
-    }
-    groups = {
-        "Colors:Button": {"BackgroundNormal": u["overlay"], "BackgroundAlternate": u["selection"]},
-        "Colors:Complementary": {"BackgroundNormal": u["bg"], "BackgroundAlternate": u["surface"]},
-        "Colors:Header": {"BackgroundNormal": u["surface2"], "BackgroundAlternate": u["surface"]},
-        "Colors:Header][Inactive": {"BackgroundNormal": u["surface"], "BackgroundAlternate": u["surface2"]},
-        "Colors:Selection": {"BackgroundNormal": u["accent"], "BackgroundAlternate": u["selection"]},
-        "Colors:Tooltip": {"BackgroundNormal": u["surface2"], "BackgroundAlternate": u["surface"]},
-        "Colors:View": {"BackgroundNormal": u["surface"], "BackgroundAlternate": mix(u["surface"], u["surface2"], 0.5)},
-        "Colors:Window": {"BackgroundNormal": u["surface2"], "BackgroundAlternate": u["overlay"]},
-    }
+def kde_color_groups(p: Palette, light: bool = False) -> str:
+    """KDE color scheme groups for MonosDark (default) or MonosLight."""
+    u, x = (p.light_ui, p.light_ansi) if light else (p.ui, p.ansi)
+
+    def fg_set(ui: dict, ansi: dict) -> dict:
+        return {
+            "ForegroundNormal": ui["fg"],
+            "ForegroundInactive": ui["fg-dim"],
+            "ForegroundActive": ansi["blue"],
+            "ForegroundLink": ansi["blue"],
+            "ForegroundVisited": ansi["bright-magenta"] if not light else ansi["magenta"],
+            "ForegroundNegative": ansi["red"],
+            "ForegroundNeutral": ansi["yellow"],
+            "ForegroundPositive": ansi["green"],
+            "DecorationFocus": ui["accent"],
+            "DecorationHover": ansi["blue"],
+        }
+
+    fg_common = fg_set(u, x)
+    if light:
+        # Light: views are the lightest surface, windows/headers one step
+        # darker, buttons light on the window color (like Breeze Light).
+        groups = {
+            "Colors:Button": {"BackgroundNormal": u["bg"], "BackgroundAlternate": u["selection"]},
+            "Colors:Header": {"BackgroundNormal": u["surface2"], "BackgroundAlternate": u["surface"]},
+            "Colors:Header][Inactive": {"BackgroundNormal": u["surface"], "BackgroundAlternate": u["surface2"]},
+            "Colors:Selection": {"BackgroundNormal": u["accent"], "BackgroundAlternate": u["selection"]},
+            "Colors:Tooltip": {"BackgroundNormal": u["bg"], "BackgroundAlternate": u["surface"]},
+            "Colors:View": {"BackgroundNormal": u["bg"], "BackgroundAlternate": u["surface"]},
+            "Colors:Window": {"BackgroundNormal": u["surface2"], "BackgroundAlternate": u["overlay"]},
+        }
+    else:
+        groups = {
+            "Colors:Button": {"BackgroundNormal": u["overlay"], "BackgroundAlternate": u["selection"]},
+            "Colors:Complementary": {"BackgroundNormal": u["bg"], "BackgroundAlternate": u["surface"]},
+            "Colors:Header": {"BackgroundNormal": u["surface2"], "BackgroundAlternate": u["surface"]},
+            "Colors:Header][Inactive": {"BackgroundNormal": u["surface"], "BackgroundAlternate": u["surface2"]},
+            "Colors:Selection": {"BackgroundNormal": u["accent"], "BackgroundAlternate": u["selection"]},
+            "Colors:Tooltip": {"BackgroundNormal": u["surface2"], "BackgroundAlternate": u["surface"]},
+            "Colors:View": {"BackgroundNormal": u["surface"], "BackgroundAlternate": mix(u["surface"], u["surface2"], 0.5)},
+            "Colors:Window": {"BackgroundNormal": u["surface2"], "BackgroundAlternate": u["overlay"]},
+        }
+    # Text on the brand-blue selection: same in both variants (the dark
+    # palette's bright colors are the readable ones on blue).
     selection_fg = {
         "ForegroundNormal": u["accent-fg"],
         "ForegroundInactive": mix(u["accent-fg"], u["accent"], 0.3),
         "ForegroundActive": u["accent-fg"],
-        "ForegroundLink": x["bright-yellow"],
-        "ForegroundVisited": x["bright-magenta"],
-        "ForegroundNegative": x["bright-red"],
-        "ForegroundNeutral": x["bright-yellow"],
-        "ForegroundPositive": x["bright-green"],
+        "ForegroundLink": p.ansi["bright-yellow"],
+        "ForegroundVisited": p.ansi["bright-magenta"],
+        "ForegroundNegative": p.ansi["bright-red"],
+        "ForegroundNeutral": p.ansi["bright-yellow"],
+        "ForegroundPositive": p.ansi["bright-green"],
     }
     out = [
         "[ColorEffects:Disabled]",
@@ -1520,6 +1604,14 @@ def kde_color_groups(p: Palette) -> str:
         out.append(f"[{name}]")
         out += [f"{k}={kde_rgb(v)}" for k, v in sorted(values.items())]
         out.append("")
+    if light:
+        # Complementary areas (logout screen, OSDs over the desktop) stay dark,
+        # as in Breeze Light.
+        values = fg_set(p.ui, p.ansi)
+        values.update({"BackgroundNormal": p.ui["bg"], "BackgroundAlternate": p.ui["surface"]})
+        out.append("[Colors:Complementary]")
+        out += [f"{k}={kde_rgb(v)}" for k, v in sorted(values.items())]
+        out.append("")
     out += [
         "[WM]",
         f"activeBackground={kde_rgb(u['surface2'])}",
@@ -1530,6 +1622,155 @@ def kde_color_groups(p: Palette) -> str:
         f"inactiveForeground={kde_rgb(u['fg-dim'])}",
     ]
     return "\n".join(out) + "\n"
+
+
+def plasma_layout_js(wallpaper: str, theme_name: str) -> str:
+    """Panel layout "B" of a monOS Global Theme (Plasma 6 desktop scripting).
+
+    Property names and values are the ones of plasma-workspace 6.7
+    (shell/scripting/panel.cpp): location top/bottom, height (thickness),
+    floating, opacity adaptive/opaque/translucent, lengthMode fill/fit/custom,
+    alignment left/center/right, hiding none/autohide/dodgewindows/windowsgobelow.
+    """
+    launchers = ", ".join(f'"{app}"' for app in PINNED_APPS)
+    return f"""{header('//')}// {theme_name} default desktop layout (Plasma 6 desktop scripting API).
+// Used by plasmashell when a user has no panel configuration yet (first
+// login), and by System Settings > Global Theme > {theme_name} with
+// "Desktop and window layout" checked.
+//
+// Layout "B": a thin top bar (launcher, virtual desktops, centered clock,
+// system monitor, tray) and a floating, centered dock that moves out of the
+// way of windows.
+
+// Wallpaper on every desktop.
+var allDesktops = desktops();
+for (var i = 0; i < allDesktops.length; i++) {{
+    var desktop = allDesktops[i];
+    desktop.wallpaperPlugin = "org.kde.image";
+    desktop.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+    desktop.writeConfig("Image", "file:///usr/share/wallpapers/{wallpaper}/");
+}}
+
+// --- Top bar: full width, ~32 px at the default font size, not floating ---
+// It never hides, so it reserves its space: maximized and tiled windows
+// (Krohnkite included) stay below it.
+var bar = new Panel;
+bar.location = "top";
+bar.floating = false;
+bar.hiding = "none";
+bar.lengthMode = "fill";
+// Translucent, so KWin's blur effect shows behind it.
+bar.opacity = "translucent";
+bar.height = 2 * Math.ceil(gridUnit * 1.75 / 2);
+
+var kickoff = bar.addWidget("org.kde.plasma.kickoff");
+kickoff.currentConfigGroup = ["General"];
+kickoff.writeConfig("icon", "{KICKOFF_ICON}");
+
+// Virtual desktops (4, see /etc/xdg/kwinrc). The pager defaults are already
+// compact: plain boxes, no names or window icons.
+bar.addWidget("org.kde.plasma.pager");
+
+// Two expanding spacers center the clock on the bar (panelspacer computes
+// equal sizes from the widgets on both sides).
+bar.addWidget("org.kde.plasma.panelspacer");
+
+// "Wed 1 Oct  19:40": date beside the time, time format from the locale.
+var clock = bar.addWidget("org.kde.plasma.digitalclock");
+clock.currentConfigGroup = ["Appearance"];
+clock.writeConfig("showDate", true);
+clock.writeConfig("dateFormat", "custom");
+clock.writeConfig("customDateFormat", "ddd d MMM");
+clock.writeConfig("dateDisplayFormat", 1); // 0 Adaptive, 1 BesideTime, 2 BelowTime
+
+bar.addWidget("org.kde.plasma.panelspacer");
+
+// Compact CPU and memory monitors (Plasma's own pie-chart applets).
+bar.addWidget("org.kde.plasma.systemmonitor.cpu");
+bar.addWidget("org.kde.plasma.systemmonitor.memory");
+bar.addWidget("org.kde.plasma.systemtray");
+
+// --- Dock: floating, centered, as wide as its icons ---
+// "dodgewindows": visible until a window overlaps it, then it slides away
+// (it comes back when the pointer touches the bottom edge).
+var dock = new Panel;
+dock.location = "bottom";
+dock.floating = true;
+dock.hiding = "dodgewindows";
+dock.lengthMode = "fit";
+dock.alignment = "center";
+dock.opacity = "translucent";
+// ~48 px icons at the default font size (gridUnit 18 -> 60 px thick).
+dock.height = 2 * Math.ceil(gridUnit * 3.25 / 2);
+
+var tasks = dock.addWidget("org.kde.plasma.icontasks");
+tasks.currentConfigGroup = ["General"];
+tasks.writeConfig("launchers", [{launchers}]);
+
+dock.addWidget("org.kde.plasma.marginsseparator");
+dock.addWidget("org.kde.plasma.trash");
+"""
+
+
+def gen_lookandfeel(
+    p: Palette,
+    *,
+    lnf_id: str,
+    name: str,
+    description: str,
+    color_scheme: str,
+    cursor: str,
+    wallpaper: str,
+) -> Path:
+    """Write metadata.json, defaults and the panel layout of a Global Theme."""
+    lnf = AIROOTFS / "usr" / "share" / "plasma" / "look-and-feel" / lnf_id
+    metadata = {
+        "KPackageStructure": "Plasma/LookAndFeel",
+        "KPlugin": {
+            "Authors": [{"Name": "monOS Project"}],
+            "Category": "",
+            "Description": description,
+            "Id": lnf_id,
+            "License": "GPL-2.0-or-later",
+            "Name": name,
+            "Version": "1.0",
+            "Website": "https://github.com/FreidhYMorales/monOS",
+        },
+        "X-Plasma-APIVersion": "2",
+    }
+    write(lnf / "metadata.json", json.dumps(metadata, indent=4) + "\n")
+
+    # Both variants use the dark monOS splash: the logo's mascot is white and
+    # disappears on a light background.
+    defaults = f"""{header('#')}[kdeglobals][KDE]
+widgetStyle={WIDGET_STYLE}
+
+[kdeglobals][General]
+ColorScheme={color_scheme}
+
+[kdeglobals][Icons]
+Theme={ICON_THEME}
+
+[plasmarc][Theme]
+name=default
+
+[Wallpaper]
+Image={wallpaper}
+
+[kcminputrc][Mouse]
+cursorTheme={cursor}
+cursorSize={CURSOR_SIZE}
+
+[kwinrc][org.kde.kdecoration2]
+library={DECORATION_LIBRARY}
+theme={DECORATION_THEME}
+
+[ksplashrc][KSplash]
+Theme={LOOK_AND_FEEL_ID}
+"""
+    write(lnf / "contents" / "defaults", defaults)
+    write(lnf / "contents" / "layouts" / "org.kde.plasma.desktop-layout.js", plasma_layout_js(wallpaper, name))
+    return lnf
 
 
 def gen_kde(p: Palette) -> None:
@@ -1546,11 +1787,27 @@ contrast=4
 {kde_color_groups(p)}"""
     write(AIROOTFS / "usr" / "share" / "color-schemes" / f"{COLOR_SCHEME}.colors", colors)
 
+    colors_light = f"""{header('#')}
+[General]
+ColorScheme={COLOR_SCHEME_LIGHT}
+Name=monOS Light
+shadeSortColumn=true
+
+[KDE]
+contrast=4
+
+{kde_color_groups(p, light=True)}"""
+    write(AIROOTFS / "usr" / "share" / "color-schemes" / f"{COLOR_SCHEME_LIGHT}.colors", colors_light)
+
     # System-wide KDE defaults. Plasma also writes the Global Theme defaults
     # to ~/.config/kdedefaults at login (startplasma), which applies the
     # colors, icons, cursor, splash and window decoration for new users.
     # The color groups are repeated here so that KDE applications started
     # outside Plasma (e.g. Calamares as root) use the monOS colors too.
+    # DefaultLightLookAndFeel / DefaultDarkLookAndFeel (kdeglobals [KDE], read by
+    # the Quick Settings page, kcm_landingpage, and by the automatic day/night
+    # switcher, kded lookandfeelautoswitcher, plasma-desktop/-workspace 6.7)
+    # make the Theme row show monOS Light / monOS / Automatic.
     kdeglobals = f"""{header('#', 'System-wide KDE defaults for monOS (users can override everything).')}
 [General]
 TerminalApplication=kitty
@@ -1567,6 +1824,8 @@ activeFont={TITLE_FONT}
 
 [KDE]
 LookAndFeelPackage={LOOK_AND_FEEL_ID}
+DefaultDarkLookAndFeel={LOOK_AND_FEEL_ID}
+DefaultLightLookAndFeel={LOOK_AND_FEEL_LIGHT_ID}
 widgetStyle={WIDGET_STYLE}
 AnimationDurationFactor={ANIMATION_DURATION_FACTOR}
 
@@ -1592,102 +1851,30 @@ PreviewImage={lock_image}
 """,
     )
 
-    lnf = AIROOTFS / "usr" / "share" / "plasma" / "look-and-feel" / LOOK_AND_FEEL_ID
-    metadata = {
-        "KPackageStructure": "Plasma/LookAndFeel",
-        "KPlugin": {
-            "Authors": [{"Name": "monOS Project"}],
-            "Category": "",
-            "Description": (
-                "monOS dark desktop: brand colors, Klassy style and window decorations, "
-                "Yamis monochrome icons, Bibata cursor and a floating dock-style panel"
-            ),
-            "Id": LOOK_AND_FEEL_ID,
-            "License": "GPL-2.0-or-later",
-            "Name": "monOS",
-            "Version": "1.0",
-            "Website": "https://github.com/FreidhYMorales/monOS",
-        },
-        "X-Plasma-APIVersion": "2",
-    }
-    write(lnf / "metadata.json", json.dumps(metadata, indent=4) + "\n")
-
-    defaults = f"""{header('#')}[kdeglobals][KDE]
-widgetStyle={WIDGET_STYLE}
-
-[kdeglobals][General]
-ColorScheme={COLOR_SCHEME}
-
-[kdeglobals][Icons]
-Theme={ICON_THEME}
-
-[plasmarc][Theme]
-name=default
-
-[Wallpaper]
-Image={WALLPAPER_DEFAULT}
-
-[kcminputrc][Mouse]
-cursorTheme={CURSOR_THEME}
-cursorSize={CURSOR_SIZE}
-
-[kwinrc][org.kde.kdecoration2]
-library={DECORATION_LIBRARY}
-theme={DECORATION_THEME}
-
-[ksplashrc][KSplash]
-Theme={LOOK_AND_FEEL_ID}
-"""
-    write(lnf / "contents" / "defaults", defaults)
-
-    launchers = ", ".join(f'"{app}"' for app in PINNED_APPS)
-    layout = f"""{header('//')}// monOS default desktop layout (Plasma 6 desktop scripting API).
-// Used by plasmashell when a user has no panel configuration yet (first
-// login), and by System Settings > Global Theme > monOS with
-// "Desktop and window layout" checked.
-
-// Wallpaper: monOS Orbit on every desktop.
-var allDesktops = desktops();
-for (var i = 0; i < allDesktops.length; i++) {{
-    var desktop = allDesktops[i];
-    desktop.wallpaperPlugin = "org.kde.image";
-    desktop.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
-    desktop.writeConfig("Image", "file:///usr/share/wallpapers/{WALLPAPER_DEFAULT}/");
-}}
-
-// One floating panel at the bottom.
-var panel = new Panel;
-panel.location = "bottom";
-panel.floating = true;
-// Translucent, so KWin's blur effect shows behind it.
-panel.opacity = "translucent";
-panel.height = 2 * Math.ceil(gridUnit * 2.5 / 2);
-
-// Keep the panel at most as wide as a 21:9 screen, like Plasma's default.
-var maximumAspectRatio = 21 / 9;
-var geo = screenGeometry(panel.screen);
-var maximumWidth = Math.ceil(geo.height * maximumAspectRatio);
-if (geo.width > maximumWidth) {{
-    panel.alignment = "center";
-    panel.minimumLength = maximumWidth;
-    panel.maximumLength = maximumWidth;
-}}
-
-var kickoff = panel.addWidget("org.kde.plasma.kickoff");
-kickoff.currentConfigGroup = ["General"];
-kickoff.writeConfig("icon", "{KICKOFF_ICON}");
-
-var tasks = panel.addWidget("org.kde.plasma.icontasks");
-tasks.currentConfigGroup = ["General"];
-tasks.writeConfig("launchers", [{launchers}]);
-
-panel.addWidget("org.kde.plasma.marginsseparator");
-panel.addWidget("org.kde.plasma.systemtray");
-panel.addWidget("org.kde.plasma.digitalclock");
-panel.addWidget("org.kde.plasma.showdesktop");
-"""
-    write(lnf / "contents" / "layouts" / "org.kde.plasma.desktop-layout.js", layout)
-
+    gen_lookandfeel(
+        p,
+        lnf_id=LOOK_AND_FEEL_LIGHT_ID,
+        name="monOS Light",
+        description=(
+            "monOS light desktop: MonosLight colors, Klassy style and window decorations, "
+            "Yamis monochrome icons, Bibata Classic cursor, top bar and floating dock"
+        ),
+        color_scheme=COLOR_SCHEME_LIGHT,
+        cursor=CURSOR_THEME_LIGHT,
+        wallpaper=WALLPAPER_LIGHT,
+    )
+    lnf = gen_lookandfeel(
+        p,
+        lnf_id=LOOK_AND_FEEL_ID,
+        name="monOS",
+        description=(
+            "monOS dark desktop: brand colors, Klassy style and window decorations, "
+            "Yamis monochrome icons, Bibata cursor, top bar and floating dock"
+        ),
+        color_scheme=COLOR_SCHEME,
+        cursor=CURSOR_THEME,
+        wallpaper=WALLPAPER_DEFAULT,
+    )
     splash = f"""{header('//')}// monOS KSplash screen (Plasma 6): logo on the brand background with a
 // thin indeterminate progress bar. `stage` goes from 1 to 6 while the
 // session starts; ksplash closes the window when Plasma is ready.
@@ -2322,19 +2509,81 @@ def gen_vscode(p: Palette) -> None:
 # SDDM, Plymouth, GRUB, Syslinux, Calamares
 # --------------------------------------------------------------------------
 def gen_sddm(p: Palette) -> None:
-    content = f"""{header('#', 'Overrides theme.conf of the Breeze SDDM theme (owned by plasma-desktop).')}[General]
+    """SDDM: the monOS greeter theme (QML, hand-written) gets its metadata and
+    theme.conf (colors, fonts, background) from here; the theme is selected
+    in /etc/sddm.conf.d/10-monos-theme.conf. Breeze keeps its monOS
+    theme.conf.user, so it still looks right if it is picked in System
+    Settings > Login Screen (SDDM)."""
+    u, x = p.ui, p.ansi
+    breeze = f"""{header('#', 'Overrides theme.conf of the Breeze SDDM theme (owned by plasma-desktop).')}[General]
 type=image
-color={p.ui['bg']}
+color={u['bg']}
 background=/usr/share/wallpapers/{WALLPAPER_DEFAULT}/contents/images/3840x2160.jpg
 showlogo=shown
 logo=/usr/share/monos/logo/monos-wordmark.svg
 """
-    write(AIROOTFS / "usr" / "share" / "sddm" / "themes" / "breeze" / "theme.conf.user", content)
+    write(AIROOTFS / "usr" / "share" / "sddm" / "themes" / "breeze" / "theme.conf.user", breeze)
 
-    conf = f"""{header('#', 'SDDM greeter theme and cursor, for the live session and the installed system.')}# Breeze with the monOS Orbit background and logo (see
-# /usr/share/sddm/themes/breeze/theme.conf.user).
+    theme_dir = AIROOTFS / "usr" / "share" / "sddm" / "themes" / SDDM_THEME
+    # QtVersion=6: SDDM 0.21 starts sddm-greeter-qt6 for this theme
+    # (Greeter::greeterPathForQt, ThemeMetadata "SddmGreeterTheme/QtVersion").
+    # SDDM reads its theme files with QSettings (INI): ";" starts a comment,
+    # and values with commas must be quoted (or they become lists).
+    metadata = f"""{header(';')}[SddmGreeterTheme]
+Name=monOS
+Description="monOS login screen: blurred wallpaper, clock, user list, session and keyboard layout pickers"
+Author=monOS Project
+License=GPL-2.0-or-later
+Type=sddm-theme
+Version=1.0
+Website=https://github.com/FreidhYMorales/monOS
+Screenshot=preview.jpg
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id={SDDM_THEME}
+Theme-API=2.0
+QtVersion=6
+"""
+    write(theme_dir / "metadata.desktop", metadata)
+
+    # SDDM also reads theme.conf.user next to it, for local overrides.
+    theme_conf = f"""{header(';', 'monOS SDDM theme settings (put local overrides in theme.conf.user).')}[General]
+; Background picture; Nebula keeps the middle of the screen free for the form.
+background=/usr/share/wallpapers/{SDDM_WALLPAPER}/contents/images/3840x2160.jpg
+; Blur strength of the background, 0 (off) .. 1. Needs a GPU scene graph;
+; the software renderer shows the picture without blur.
+blur=0.6
+; Background dimming with the background color, 0 .. 1.
+dim=0.35
+; Opacity of the login card and the session/keyboard buttons, 0 .. 1.
+panelOpacity=0.78
+logo=/usr/share/monos/logo/monos-wordmark.svg
+font=JetBrainsMono Nerd Font Propo
+; Qt date/time format strings (the date uses the locale's day/month names).
+clockFormat=HH:mm
+dateFormat="dddd, d MMMM"
+
+; Colors (monOS dark palette).
+colorBackground={u['bg']}
+colorSurface={u['surface']}
+colorSurface2={u['surface2']}
+colorOverlay={u['overlay']}
+colorBorder={u['border']}
+colorText={u['fg']}
+colorTextDim={u['fg-dim']}
+colorMuted={u['muted']}
+colorAccent={u['accent']}
+colorOnAccent={u['accent-fg']}
+colorAccentText={u['accent-text']}
+colorSelection={u['selection']}
+colorError={x['red']}
+colorWarning={x['yellow']}
+"""
+    write(theme_dir / "theme.conf", theme_conf)
+
+    conf = f"""{header('#', 'SDDM greeter theme and cursor, for the live session and the installed system.')}# monOS theme: /usr/share/sddm/themes/{SDDM_THEME} (Qt 6 greeter).
 [Theme]
-Current=breeze
+Current={SDDM_THEME}
 CursorTheme={CURSOR_THEME}
 CursorSize={CURSOR_SIZE}
 """

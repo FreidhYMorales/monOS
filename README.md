@@ -297,6 +297,7 @@ targets, plus the monOS Light scale and terminal palette in `[light.ui]` /
 ./branding/tools/install-branding.sh   # artwork + runs gen-themes.py
 python3 branding/tools/gen-themes.py   # text configs only
 python3 branding/tools/gen-themes.py --check   # contrast report only
+./branding/tools/make-wallpapers.sh [orbit] [nebula] [daylight]   # redraw wallpapers
 ```
 
 `install-branding.sh` needs `imagemagick` and `librsvg` (and `grub-mkfont`
@@ -310,17 +311,17 @@ the installed system.
 
 | Area | What | How it becomes the default |
 |------|------|----------------------------|
-| KDE Plasma | Global Theme `org.monos.desktop` (MonosDark colors, Yamis monochrome icons with Papirus-Dark fallback, Klassy style and window decoration, Bibata-Modern-Ice cursor, splash, translucent floating bottom panel with Kickoff, pinned kitty/Dolphin/Firefox/Code, tray, clock, show desktop), wallpapers monOS Orbit and monOS Nebula | `/etc/xdg/kdeglobals` (`LookAndFeelPackage`, colors, fonts, icons, style, animation speed), `/etc/xdg/ksplashrc`, `/etc/xdg/kscreenlockerrc`; Plasma applies the Global Theme defaults and its panel layout at a user's first login |
+| KDE Plasma | Global Themes `org.monos.desktop` (monOS, default: MonosDark colors, Bibata-Modern-Ice cursor, Orbit wallpaper) and `org.monos.desktop.light` (monOS Light: MonosLight colors, Bibata-Modern-Classic cursor, Daylight wallpaper); both with Yamis monochrome icons (Papirus-Dark fallback), Klassy style and window decoration, the monOS splash and [panel layout B](#desktop-layout); wallpapers monOS Orbit, Nebula and Daylight | `/etc/xdg/kdeglobals` (`LookAndFeelPackage`, `DefaultDarkLookAndFeel`, `DefaultLightLookAndFeel`, colors, fonts, icons, style, animation speed), `/etc/xdg/ksplashrc`, `/etc/xdg/kscreenlockerrc`; Plasma applies the Global Theme defaults and its panel layout at a user's first login |
 | Klassy | rounded windows (radius 8), title bar in the window color without separator, round buttons with the monOS accent on hover/press, accent outline on the active window, slightly translucent menus | `/etc/xdg/klassy/klassyrc` (Klassy reads it as defaults; Klassy Settings writes user overrides to `~/.config/klassy/klassyrc`) |
 | KWin | Klassy decoration, blur (lighter than Plasma's default), animations at 0.7x duration, 4 virtual desktops in one row, Night Light on (sunset/sunrise schedule), Krohnkite installed but off | `/etc/xdg/kwinrc`, `/etc/xdg/kdeglobals` (`AnimationDurationFactor`) |
-| Cursor | Bibata-Modern-Ice, 24 px, for Plasma, GTK apps and the SDDM greeter | `/etc/xdg/kcminputrc` (also synced to GTK by kde-gtk-config at login), Global Theme defaults, `/etc/sddm.conf.d/10-monos-theme.conf` |
+| Cursor | Bibata-Modern-Ice, 24 px, for Plasma, GTK apps and the SDDM greeter (monOS Light switches Plasma to Bibata-Modern-Classic) | `/etc/xdg/kcminputrc` (also synced to GTK by kde-gtk-config at login), Global Theme defaults, `/etc/sddm.conf.d/10-monos-theme.conf` |
 | Shortcuts | see the table below | `/etc/skel/.config/kglobalshortcutsrc` (new users), `X-KDE-Shortcuts` in `/usr/local/share/applications/monos-tiling-toggle.desktop` (all users) |
 | Dolphin | details view, hidden files shown, editable location bar with the full path, full path in the title bar | `/etc/xdg/dolphinrc`, `/etc/skel/.local/share/dolphin/view_properties/global/.directory` |
 | Obsidian | `monOS` theme (monOS dark and monOS Light, JetBrainsMono Nerd Font, radius 4-12 px), selected in every vault that has not chosen a theme | `/usr/share/monos/obsidian/themes/monOS`, copied into each vault by `monos-obsidian-theme-sync` (see [Obsidian](#obsidian)) |
 | VS Code (Code - OSS) | `monOS` color theme (workbench, terminal ANSI colors, syntax and semantic tokens), JetBrainsMono Nerd Font with ligatures, Seti icons, custom title bar, telemetry off | theme: built-in extension `/usr/lib/code/extensions/monos-theme`; settings: `/etc/skel/.config/Code - OSS/User/settings.json` |
-| Terminals and CLI | kitty, foot, btop, yazi (theme and yatline bars), bat (`--theme=ansi`), fzf, lazygit, zellij, helix, starship, fastfetch; behavior: see [Shell & CLI defaults](#shell--cli-defaults) | files in `/etc/skel/.config` (and a block in `/etc/skel/.zshrc`), copied to new users' homes |
+| Terminals and CLI | kitty (plus `monOS` / `monOS Light` themes for `kitty +kitten themes`), foot, btop, yazi (theme and yatline bars), bat (`--theme=ansi`), fzf, lazygit, zellij, helix, starship, fastfetch; behavior: see [Shell & CLI defaults](#shell--cli-defaults) | files in `/etc/skel/.config` (and a block in `/etc/skel/.zshrc`), copied to new users' homes |
 | Neovim / Vim | `monos` colorscheme only (no plugins, no user config) | `/usr/local/share/nvim/site` and `/usr/share/vim/vimfiles`; used when the user config does not pick a colorscheme |
-| Login | SDDM Breeze with the monOS Orbit background and logo, Bibata cursor | `/usr/share/sddm/themes/breeze/theme.conf.user`, `/etc/sddm.conf.d/10-monos-theme.conf` |
+| Login | SDDM theme `monos` (Qt 6 QML, see [Login screen](#login-screen-sddm)), Bibata cursor; Breeze keeps a monOS background and logo if you pick it instead | `/usr/share/sddm/themes/monos`, `/etc/sddm.conf.d/10-monos-theme.conf`, `/usr/share/sddm/themes/breeze/theme.conf.user` |
 | Boot splash | Plymouth theme `monos` (logo, spinner, LUKS password prompt) | build-time pacman hook runs `plymouth-set-default-theme monos`; live: `plymouth` hook in the archiso initramfs and `quiet splash` on the default boot entries; installed: Calamares adds the `plymouth` hook and `splash` automatically |
 | Boot menu | GRUB theme `monos` (installed system), Syslinux splash and colors (BIOS live medium) | the installer copies the theme to `/boot/grub/themes/monos`; `grubcfg` sets `GRUB_THEME` and `GRUB_TERMINAL_OUTPUT=gfxterm` |
 | Installer | Calamares sidebar colors and slideshow background | `etc/calamares/branding/monos` |
@@ -354,6 +355,95 @@ Notes on shortcuts:
   Meta+Shift+Return because Meta+Return opens kitty. Meta+T stays KWin's tile
   editor.
 
+### Desktop layout
+
+Both Global Themes ship the same panel layout ("B"), written by
+`gen-themes.py` into `contents/layouts/org.kde.plasma.desktop-layout.js`
+(Plasma 6 desktop scripting; property names checked against
+plasma-workspace 6.7 `shell/scripting/panel.cpp`):
+
+| Panel | Settings | Widgets (left to right) |
+|-------|----------|-------------------------|
+| Top bar | `location = "top"`, full width (`lengthMode = "fill"`), not floating, `hiding = "none"`, `opacity = "translucent"` (KWin blur), ~32 px (`gridUnit * 1.75`) | Kickoff (monOS icon) and the pager (4 desktops); the clock with the date beside it (`ddd d MMM`, time format from the locale), centered by two expanding spacers; CPU and memory monitors (`org.kde.plasma.systemmonitor.cpu` / `.memory`); system tray |
+| Dock | `location = "bottom"`, floating, `lengthMode = "fit"`, `alignment = "center"`, `hiding = "dodgewindows"`, `opacity = "translucent"`, ~60 px thick (about 48 px icons) | icon-only task manager pinned with kitty, Dolphin, Firefox, Code - OSS and Obsidian; Trash |
+
+The top bar never hides, so Plasma reserves its space: maximized and tiled
+windows (Krohnkite too) start below it. The dock does not reserve space; it
+slides away when a window overlaps it and comes back when no window covers
+it or when the pointer touches the bottom edge. There is no "show desktop"
+button (Meta+D still works).
+
+The layout is applied at a user's first login. To get it again: System
+Settings > Colors & Themes > Global Theme > monOS (or monOS Light), check
+"Desktop and window layout", Apply. That replaces your current panels.
+
+### monOS Light
+
+`org.monos.desktop.light` is the light variant of the desktop: the
+`MonosLight` color scheme (from `[light.ui]` / `[light.ansi]`; views on the
+lightest surface, windows one step darker, OSDs and the logout screen stay
+dark like Breeze Light), the monOS Daylight wallpaper and the black
+Bibata-Modern-Classic cursor. The rest is shared with the dark theme:
+
+- Klassy: `/etc/xdg/klassy/klassyrc` only uses color roles of the scheme
+  (title bar text, accent), no fixed colors, so it follows MonosLight.
+- Icons: Yamis stays. Almost all of its SVGs (4076 of 4107) and its
+  Papirus-Dark fallbacks draw with `ColorScheme-Text` / `currentColor` and
+  the theme sets `FollowsColorScheme=true`, so KDE paints them dark on the
+  light scheme. GTK apps do not recolor icons, so a few GTK dialogs may show
+  light icons on a light background.
+- Splash: both themes use the dark monOS splash (the mascot is white).
+- Terminals and CLI tools keep the dark palette: they do not follow the
+  Plasma theme. kitty has both palettes as user themes: run
+  `kitty +kitten themes`, pick "monOS Light" (or "monOS" to go back) and it
+  adds an include to `kitty.conf`. Nothing switches automatically.
+- Obsidian has its own light colors (`.theme-light`) and follows its own
+  Light/Dark setting.
+
+Switching between dark, light and automatic: System Settings > Quick
+Settings, row "Theme": monOS Light, monOS or Automatic. Those two buttons
+come from `DefaultLightLookAndFeel` / `DefaultDarkLookAndFeel` in
+`/etc/xdg/kdeglobals` (`[KDE]`, read by the Quick Settings page,
+`kcm_landingpage`). Automatic sets `AutomaticLookAndFeel=true`: the
+`lookandfeelautoswitcher` kded module then applies monOS Light during the
+day and monOS at night, following the system's day/night schedule (the
+KNightTime service, which Night Light uses too). Switching applies the colors, icons,
+cursor, wallpaper and window decoration, never the panel layout. monOS
+(dark) stays the default. The same choice is in System Settings > Colors &
+Themes > Global Theme.
+
+### Login screen (SDDM)
+
+`/usr/share/sddm/themes/monos` is a Qt 6 QML greeter theme
+(`QtVersion=6` in `metadata.desktop`, so SDDM 0.21 starts
+`sddm-greeter-qt6`). It only imports Qt Quick, Qt Quick Controls (Basic),
+Qt Quick Effects and SDDM's own `SddmComponents` (translated strings): no
+Plasma or Kirigami. It shows:
+
+- the monOS Nebula wallpaper, blurred and dimmed (Nebula rather than Orbit
+  because the Orbit mascot sits right where the form is); the blur needs a
+  GPU scene graph, with the software renderer the picture shows unblurred;
+- the monOS wordmark and the host name (top left), suspend / reboot / shut
+  down (top right, only those the system allows);
+- a large clock with the date, then a translucent card with the users
+  (picture, or their initial on an accent circle), the password field with
+  a show/hide button and the login button; Caps Lock warning and "Login
+  failed" (the card shakes and the field is cleared); a user name field when
+  SDDM lists no users;
+- the session picker (Wayland sessions first, so Plasma (Wayland) is the
+  default until you pick another one; Plasma (X11) appears only if it is
+  installed) and the keyboard layout (click to switch).
+
+Keyboard: the password field has the focus; Enter logs in; Tab goes
+show/hide, login, session, layout, power buttons, then the user list
+(Left/Right picks a user). Colors, fonts (JetBrainsMono Nerd Font Propo),
+background, blur, dimming, clock and date formats are in `theme.conf`,
+rendered by `gen-themes.py` from the palette; put local changes in
+`theme.conf.user` next to it. `/etc/sddm.conf.d/10-monos-theme.conf`
+selects the theme for the live session and the installed system. To try it
+without logging out: `sddm-greeter-qt6 --test-mode --theme
+/usr/share/sddm/themes/monos`.
+
 ### Obsidian
 
 `gen-themes.py` renders the `monOS` Obsidian theme
@@ -380,8 +470,8 @@ fastfetch is not started automatically: run `fastfetch` (ASCII logo, any
 terminal) or, in kitty, `fastfetch -c monos-kitty` (logo as an image).
 
 To re-apply the desktop theme after changing it (for example to get the
-default panel back): System Settings > Colors & Themes > Global Theme >
-monOS, check "Use desktop layout from theme", Apply. In Neovim/Vim the scheme
+default panels back): System Settings > Colors & Themes > Global Theme >
+monOS (or monOS Light), check "Desktop and window layout", Apply. In Neovim/Vim the scheme
 is `:colorscheme monos` (disable the automatic default with
 `vim.g.monos_no_default_colorscheme = true` / `let g:monos_no_default_colorscheme = 1`).
 Plymouth: `sudo plymouth-set-default-theme -R <theme>`. Klassy: run

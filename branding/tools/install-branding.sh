@@ -9,8 +9,8 @@
 #
 #   icons       /usr/share/icons/hicolor/scalable/apps/monos{,-small}.svg
 #   logos       /usr/share/monos/logo/*.svg, fastfetch image logo
-#   wallpapers  /usr/share/wallpapers/monOS-{Orbit,Nebula} (KDE packages)
-#   Plasma      Global Theme previews and splash logo
+#   wallpapers  /usr/share/wallpapers/monOS-{Orbit,Nebula,Daylight} (KDE packages)
+#   Plasma      Global Theme previews (monOS, monOS Light) and splash logo
 #   Plymouth    /usr/share/plymouth/themes/monos/*.png
 #   GRUB        /usr/share/grub/themes/monos (background, pixmaps, PF2 fonts)
 #   Syslinux    profile/syslinux/splash.png (640x480)
@@ -119,6 +119,7 @@ EOF
 }
 wallpaper "${WALLS}/monos-orbit.jpg" monOS-Orbit "monOS Orbit"
 wallpaper "${WALLS}/monos-nebula.jpg" monOS-Nebula "monOS Nebula"
+wallpaper "${WALLS}/monos-daylight.jpg" monOS-Daylight "monOS Daylight"
 
 echo ":: Plasma Global Theme (previews, splash logo)"
 lnf="${AIROOTFS}/usr/share/plasma/look-and-feel/org.monos.desktop/contents"
@@ -127,6 +128,12 @@ install -m 0644 -- "${LOGO}/monos-logo.svg" "${lnf}/splash/images/monos.svg"
 magick "${WALLS}/monos-orbit.jpg" -resize 600x338 "${STRIP[@]}" "PNG32:${lnf}/previews/preview.png"
 magick "${WALLS}/monos-orbit.jpg" -resize 1920x1080 -quality 88 "${STRIP[@]}" \
     "${lnf}/previews/fullscreenpreview.jpg"
+# monOS Light reuses the dark splash (org.monos.desktop), so only previews.
+lnf_light="${AIROOTFS}/usr/share/plasma/look-and-feel/org.monos.desktop.light/contents"
+install -d -- "${lnf_light}/previews"
+magick "${WALLS}/monos-daylight.jpg" -resize 600x338 "${STRIP[@]}" "PNG32:${lnf_light}/previews/preview.png"
+magick "${WALLS}/monos-daylight.jpg" -resize 1920x1080 -quality 88 "${STRIP[@]}" \
+    "${lnf_light}/previews/fullscreenpreview.jpg"
 
 echo ":: Plymouth theme images"
 ply="${AIROOTFS}/usr/share/plymouth/themes/monos"

@@ -80,7 +80,7 @@ for unit in "${live_units[@]}"; do
     find "${ROOT}/etc/systemd/system" -name "${unit}" \( -type l -o -type f \) -delete
 done
 
-# The SDDM theme (Breeze with the monOS background) is set by
+# The SDDM theme (monOS, /usr/share/sddm/themes/monos) is set by
 # /etc/sddm.conf.d/10-monos-theme.conf, shipped in the live filesystem and
 # kept on the target; only the autologin drop-in above is live-only.
 
