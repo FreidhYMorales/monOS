@@ -92,6 +92,7 @@ icons="${AIROOTFS}/usr/share/icons/hicolor/scalable/apps"
 install -d -- "${icons}" "${AIROOTFS}/usr/share/monos/logo" "${AIROOTFS}/usr/share/monos/fastfetch"
 install -m 0644 -- "${LOGO}/monos-icon.svg" "${icons}/monos.svg"
 install -m 0644 -- "${LOGO}/monos-icon-small.svg" "${icons}/monos-small.svg"
+install -m 0644 -- "${LOGO}/monos-launcher.svg" "${icons}/monos-launcher.svg"
 for name in monos-icon monos-icon-small monos-logo monos-mark monos-wordmark; do
     install -m 0644 -- "${LOGO}/${name}.svg" "${AIROOTFS}/usr/share/monos/logo/${name}.svg"
 done

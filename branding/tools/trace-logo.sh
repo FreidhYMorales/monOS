@@ -142,5 +142,18 @@ ${MASCOT}
 </g>
 </g>"
 
+# Panel launcher: the same head on a round badge with transparent padding
+# (badge = 80% of the canvas). Plasma scales launcher icons to the full panel
+# thickness, so a full-bleed square badge spills over Panel Colorizer islands.
+svg monos-launcher.svg "0 0 2048 2048" "monOS" \
+    "<circle cx=\"1024\" cy=\"1024\" r=\"820\" fill=\"${BADGE}\"/>
+<circle cx=\"1024\" cy=\"1024\" r=\"808\" fill=\"none\" stroke=\"${BLUE}\" stroke-opacity=\"0.55\" stroke-width=\"24\"/>
+<defs><clipPath id=\"head\"><ellipse cx=\"1250\" cy=\"745\" rx=\"515\" ry=\"392\"/></clipPath></defs>
+<g transform=\"translate(1024 1040) scale(1.32) translate(-1240 -712)\">
+<g clip-path=\"url(#head)\">
+${MASCOT}
+</g>
+</g>"
+
 echo ":: Wrote:"
 ls -lh -- "${OUT_DIR}"/*.svg

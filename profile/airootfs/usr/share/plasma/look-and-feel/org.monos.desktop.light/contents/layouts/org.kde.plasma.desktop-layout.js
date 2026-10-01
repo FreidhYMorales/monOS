@@ -60,7 +60,7 @@ bar.height = 2 * Math.ceil(gridUnit);
 // Island 1: launcher, virtual desktops and the active window.
 var kickoff = bar.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
-kickoff.writeConfig("icon", "monos-small");
+kickoff.writeConfig("icon", "monos-launcher");
 
 // Virtual desktops (4, see /etc/xdg/kwinrc), GNOME style with Kara: the
 // active desktop is a 28 px accent pill, the others 8 px dots in
@@ -154,6 +154,13 @@ clock.writeConfig("dateFormat", "custom");
 clock.writeConfig("customDateFormat", "ddd d MMM\u2003\u2060");
 clock.writeConfig("dateDisplayFormat", 1); // 0 Adaptive, 1 BesideTime, 2 BelowTime
 clock.writeConfig("use24hFormat", 2);
+// Fixed, smaller font instead of auto-fit (which grows with the bar height).
+// DigitalClock.qml fontHelper: autoFontAndSize=false uses fontFamily,
+// fontWeight (Qt 6 scale, 400 = normal) and fontSize in points.
+clock.writeConfig("autoFontAndSize", false);
+clock.writeConfig("fontFamily", "JetBrainsMono Nerd Font Propo");
+clock.writeConfig("fontWeight", 500);
+clock.writeConfig("fontSize", 10);
 
 bar.addWidget("org.kde.plasma.panelspacer");
 

@@ -51,7 +51,7 @@ COLOR_SCHEME_LIGHT = "MonosLight"
 ICON_THEME = "yet-another-monochrome-icon-set"
 WALLPAPER_DEFAULT = "monOS-Orbit"
 WALLPAPER_LIGHT = "monOS-Daylight"
-KICKOFF_ICON = "monos-small"
+KICKOFF_ICON = "monos-launcher"  # round badge with padding (fits the islands)
 # Dock app-grid button (Application Dashboard, org.kde.plasma.kickerdash):
 # Yamis ships categories/scalable/applications-all-symbolic.svg, Papirus
 # has it too (symbolic/categories).
@@ -1901,6 +1901,13 @@ clock.writeConfig("dateFormat", "custom");
 clock.writeConfig("customDateFormat", {date_format});
 clock.writeConfig("dateDisplayFormat", 1); // 0 Adaptive, 1 BesideTime, 2 BelowTime
 clock.writeConfig("use24hFormat", 2);
+// Fixed, smaller font instead of auto-fit (which grows with the bar height).
+// DigitalClock.qml fontHelper: autoFontAndSize=false uses fontFamily,
+// fontWeight (Qt 6 scale, 400 = normal) and fontSize in points.
+clock.writeConfig("autoFontAndSize", false);
+clock.writeConfig("fontFamily", "JetBrainsMono Nerd Font Propo");
+clock.writeConfig("fontWeight", 500);
+clock.writeConfig("fontSize", 10);
 
 bar.addWidget("org.kde.plasma.panelspacer");
 
