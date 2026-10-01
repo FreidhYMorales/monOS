@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="3840" height="2160" viewBox="0 0 3840 2160">
+<title>monOS Astronaut</title>
+<!--
+  Scene layer of the "monOS Astronaut" wallpaper (transparent background).
+  branding/tools/make-wallpapers.sh astronaut composes it over the procedural
+  space (dark) and daylight (light) backgrounds.
+
+  Color tokens (the light variant is made by replacing them):
+    #FCFCFC  line art (same white as the logo)
+    #05070C  night fill: planet body, laptop screen, line gaps
+    #FFFFFF  glass highlights
+    #0C6BFA  brand blue accent
+  Elements with class="tint" (blue halo and glass) carry opacity="1"; the
+  light variant lowers it, since blue tints read much stronger on white.
+  The mascot is branding/logo/monos-mark.svg used as-is; the build swaps in a
+  copy without the floor shadow (it floats here) and, for the light variant,
+  recolored. The mascot group uses the logo's own units, so the helmet and
+  collar strokes (38) match the logo's line weight (measured 35-45); the
+  planet and sparkles use the same weight at the scene scale (38 x 0.6 = 23).
+-->
+<defs>
+  <image id="mark" x="400" y="320" width="1680" height="1480" href="../../logo/monos-mark.svg"/>
+
+  <!-- Laptop silhouette in logo units (outer frame incl. the gray edge). -->
+  <clipPath id="laptop">
+    <path d="M1504 1126 L2034 1150 L1895 1562 L1361 1547 Z"/>
+  </clipPath>
+  <!-- The mascot's own shape: the helmet's line gap applies only over it. -->
+  <mask id="on-mark" mask-type="alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="2600" height="2000">
+    <use href="#mark"/>
+  </mask>
+  <clipPath id="planet-body">
+    <circle cx="0" cy="0" r="312"/>
+  </clipPath>
+
+  <clipPath id="planet-inner">
+    <circle cx="0" cy="0" r="300"/>
+  </clipPath>
+
+  <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
+    <stop offset="0" stop-color="#0C6BFA" stop-opacity="0.22"/>
+    <stop offset="0.6" stop-color="#0C6BFA" stop-opacity="0.08"/>
+    <stop offset="1" stop-color="#0C6BFA" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="glass" cx="0.38" cy="0.32" r="0.75">
+    <stop offset="0" stop-color="#0C6BFA" stop-opacity="0.16"/>
+    <stop offset="1" stop-color="#0C6BFA" stop-opacity="0.06"/>
+  </radialGradient>
+  <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur stdDeviation="18"/>
+  </filter>
+
+  <!-- 4-point sparkle, radius 1. -->
+  <path id="sparkle" d="M0 -1 C0.1 -0.1 0.1 -0.1 1 0 C0.1 0.1 0.1 0.1 0 1 C-0.1 0.1 -0.1 0.1 -1 0 C-0.1 -0.1 -0.1 -0.1 0 -1 Z"/>
+</defs>
+
+<!-- Dotted orbit trail from the mascot towards the planet. -->
+<path d="M1020 1560 C 1350 1980, 2150 1960, 2560 1560" fill="none" stroke="#FCFCFC"
+      stroke-opacity="0.45" stroke-width="9" stroke-linecap="round" stroke-dasharray="0 34"/>
+
+<!-- Ringed planet, lower right. Ring tilted; its back half hides behind the body. -->
+<g transform="translate(2930 1430) rotate(-16)">
+  <ellipse class="tint" cx="0" cy="0" rx="300" ry="300" fill="url(#halo)" transform="scale(1.9)" opacity="1"/>
+  <ellipse cx="0" cy="0" rx="560" ry="118" fill="none" stroke="#FCFCFC" stroke-width="23"/>
+  <circle cx="0" cy="0" r="300" fill="#05070C"/>
+  <g clip-path="url(#planet-inner)" fill="none" stroke="#FCFCFC" stroke-width="12" stroke-opacity="0.35" stroke-linecap="round">
+    <path d="M-300 -150 C -120 -110, 120 -110, 300 -150"/>
+    <path d="M-300 -60 C -100 -10, 100 -10, 300 -60"/>
+  </g>
+  <circle cx="0" cy="0" r="300" fill="none" stroke="#FCFCFC" stroke-width="23"/>
+  <!-- Front half of the ring, with a night gap so it reads in front. -->
+  <path d="M-560 0 A560 118 0 0 0 560 0" fill="none" stroke="#05070C" stroke-width="51" clip-path="url(#planet-body)"/>
+  <path d="M-560 0 A560 118 0 0 0 560 0" fill="none" stroke="#FCFCFC" stroke-width="23"/>
+  <!-- Small moon in brand blue. -->
+  <circle cx="-330" cy="-300" r="30" fill="#0C6BFA"/>
+</g>
+
+<!-- Mascot with helmet. Inner coordinates are monos-mark.svg units. -->
+<g transform="translate(1536 1000) rotate(-8) scale(0.6) translate(-1242 -890)">
+  <circle class="tint" cx="1242" cy="700" r="760" fill="url(#halo)" opacity="1"/>
+  <!-- Glass: tinted fill behind the head. -->
+  <circle class="tint" cx="1242" cy="700" r="585" fill="url(#glass)" opacity="1"/>
+
+  <use href="#mark"/>
+
+  <!-- Helmet ring: soft blue glow, a night gap where it crosses the mascot
+       (keeps it reading in front of the shoulders), then the crisp line. -->
+  <circle cx="1242" cy="700" r="585" fill="none" stroke="#0C6BFA" stroke-width="46" stroke-opacity="0.55" filter="url(#soft)"/>
+  <circle cx="1242" cy="700" r="585" fill="none" stroke="#05070C" stroke-width="66" mask="url(#on-mark)"/>
+  <circle cx="1242" cy="700" r="585" fill="none" stroke="#FCFCFC" stroke-width="38"/>
+  <!-- Glass highlights: long arc upper-left plus a short dash. -->
+  <g fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-opacity="0.55" stroke-width="26">
+    <path d="M745 590 A510 510 0 0 1 1010 245"/>
+    <path d="M1085 205 A510 510 0 0 1 1150 192"/>
+  </g>
+
+  <!-- Laptop redrawn on top so it occludes the helmet. -->
+  <g clip-path="url(#laptop)">
+    <rect x="1300" y="1100" width="800" height="500" fill="#05070C"/>
+    <use href="#mark"/>
+  </g>
+</g>
+
+<!-- Sparkles. -->
+<g fill="#FCFCFC">
+  <use href="#sparkle" transform="translate(2380 560) scale(46)"/>
+  <use href="#sparkle" transform="translate(2520 700) scale(22)" fill-opacity="0.7"/>
+  <use href="#sparkle" transform="translate(780 520) scale(30)" fill-opacity="0.8"/>
+  <use href="#sparkle" transform="translate(3420 820) scale(34)"/>
+  <use href="#sparkle" transform="translate(620 1640) scale(24)" fill-opacity="0.7"/>
+  <use href="#sparkle" transform="translate(3300 1980) scale(20)" fill-opacity="0.6"/>
+</g>
+<use href="#sparkle" transform="translate(2140 1180) scale(28)" fill="#0C6BFA"/>
+</svg>
