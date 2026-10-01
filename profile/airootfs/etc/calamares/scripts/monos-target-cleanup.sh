@@ -8,8 +8,8 @@
 #
 # 1. Removes live-session-only files: SDDM autologin, liveuser sudo/sysusers
 #    rules, archiso mkinitcpio drop-in/presets, live-only systemd units and
-#    their enablement symlinks, helper scripts, the installer launcher and
-#    this Calamares configuration.
+#    their enablement symlinks, helper scripts, the installer launcher,
+#    the live nouveau/nvidia modprobe gate and this Calamares configuration.
 # 2. Restores the kernels: mkarchiso empties /boot of the live root filesystem
 #    (kernels and initramfs only exist on the ISO). Every kernel package also
 #    ships its image as /usr/lib/modules/<version>/vmlinuz with a "pkgbase"
@@ -52,11 +52,18 @@ live_files=(
     usr/local/bin/monos-install
     usr/local/share/applications/monos-install.desktop
     usr/local/share/applications/calamares.desktop
+    # Live-only nouveau/nvidia gate: the installed system uses the stock
+    # nvidia-utils modprobe configuration (or none, see monos-hardware-cleanup.sh).
+    etc/modprobe.d/nvidia-utils.conf
+    etc/modprobe.d/monos-nouveau-gate.conf
+    usr/local/lib/monos/nouveau-gate
+    usr/local/lib/monos/nvidia-open-supported
 )
 for f in "${live_files[@]}"; do
     rm -f -- "${ROOT:?}/${f}"
 done
 rm -rf -- "${ROOT:?}/usr/local/share/livecd-sound" "${ROOT:?}/etc/calamares"
+rmdir --ignore-fail-on-non-empty -- "${ROOT:?}/usr/local/lib/monos" 2>/dev/null || true
 
 # archiso presets (linux.preset only builds the "archiso" image).
 rm -f -- "${ROOT:?}"/etc/mkinitcpio.d/*.preset

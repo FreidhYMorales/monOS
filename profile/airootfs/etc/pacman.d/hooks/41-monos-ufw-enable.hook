@@ -1,0 +1,21 @@
+# remove from airootfs!
+# monOS: turn the ufw firewall on (ENABLED=yes in /etc/ufw/ufw.conf).
+#
+# /etc/ufw/ufw.conf is owned by the ufw package, so it cannot be shipped in
+# airootfs (mkarchiso copies airootfs before pacstrap and pacman refuses to
+# overwrite it). ufw.service only loads the rules when ENABLED=yes. The default
+# policies in /etc/default/ufw already are deny incoming, allow outgoing,
+# deny forwarding. The installed system is a copy of the live root filesystem
+# and keeps the setting.
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = ufw
+
+[Action]
+Description = Enabling the ufw firewall...
+When = PostTransaction
+Depends = sed
+Exec = /usr/bin/sed -i -e "s/^ENABLED=no$/ENABLED=yes/" /etc/ufw/ufw.conf

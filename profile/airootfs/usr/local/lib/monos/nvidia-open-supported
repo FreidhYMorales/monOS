@@ -1,0 +1,73 @@
+#!/bin/sh
+# monOS: is there an NVIDIA GPU that the NVIDIA open kernel modules
+# (nvidia-open) can drive?
+#
+# Usage: nvidia-open-supported [-v]
+#   exit 0  at least one NVIDIA display controller is supported (Turing or newer)
+#   exit 1  NVIDIA GPU(s) present, none supported (Maxwell/Pascal/Volta or older)
+#   exit 2  no NVIDIA GPU
+#   -v      print what was found (stdout)
+#
+# Supported device IDs come from the "Current NVIDIA GPUs" table of the
+# driver README shipped by nvidia-utils (supportedchips.html). Since driver
+# 590 that table only lists Turing and newer GPUs, the generations the open
+# modules support; older GPUs are in the separate legacy tables. Without the
+# README the PCI device ID is compared with 0x1E00 (first Turing ID; every
+# Turing and newer GPU has a higher ID, every older one a lower ID).
+#
+# Environment (for tests): MONOS_PCI_DEVICES (default /sys/bus/pci/devices),
+# MONOS_NVIDIA_CHIPS (default /usr/share/doc/nvidia/html/supportedchips.html).
+#
+# POSIX sh and coreutils/sed/grep only: it is used by the live session's
+# nouveau gate (modprobe install command) and by the installer.
+
+verbose=0
+[ "${1:-}" = "-v" ] && verbose=1
+say() { [ "$verbose" -eq 1 ] && printf 'nvidia-open-supported: %s\n' "$*"; return 0; }
+
+devices="${MONOS_PCI_DEVICES:-/sys/bus/pci/devices}"
+chips="${MONOS_NVIDIA_CHIPS:-/usr/share/doc/nvidia/html/supportedchips.html}"
+
+supported_ids=""
+if [ -r "$chips" ]; then
+    supported_ids="$(sed -n '/<h3>Current NVIDIA GPUs<\/h3>/,/<\/table>/p' "$chips" \
+        | grep -o 'devid[0-9A-Fa-f]\{4\}' | cut -c6- | tr 'a-f' 'A-F' | sort -u)"
+fi
+if [ -n "$supported_ids" ]; then
+    say "supported IDs: $(printf '%s\n' "$supported_ids" | wc -l) from $chips"
+else
+    say "no usable $chips, using the device ID >= 0x1E00 rule"
+fi
+
+found=0
+supported=0
+for dev in "$devices"/*; do
+    [ -r "$dev/vendor" ] && [ -r "$dev/class" ] && [ -r "$dev/device" ] || continue
+    [ "$(cat "$dev/vendor")" = "0x10de" ] || continue
+    class="$(cat "$dev/class")"
+    case "$class" in
+        0x03*) ;;          # display controller (VGA or 3D)
+        *) continue ;;
+    esac
+    id="$(cat "$dev/device")"
+    id="$(printf '%s' "${id#0x}" | tr 'a-f' 'A-F')"
+    found=1
+    if [ -n "$supported_ids" ]; then
+        if printf '%s\n' "$supported_ids" | grep -qx "$id"; then ok=1; else ok=0; fi
+    else
+        if [ "$((0x$id))" -ge "$((0x1E00))" ]; then ok=1; else ok=0; fi
+    fi
+    if [ "$ok" -eq 1 ]; then
+        supported=1
+        say "${dev##*/} 10de:$id supported by nvidia-open"
+    else
+        say "${dev##*/} 10de:$id NOT supported by nvidia-open (pre-Turing)"
+    fi
+done
+
+if [ "$found" -eq 0 ]; then
+    say "no NVIDIA GPU"
+    exit 2
+fi
+[ "$supported" -eq 1 ] && exit 0
+exit 1

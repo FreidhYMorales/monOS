@@ -101,10 +101,26 @@ class Palette:
         self.brand = data["brand"]
         self.ui = data["ui"]
         self.ansi = data["ansi"]
-        for section in ("brand", "ui", "ansi"):
-            for key, value in data[section].items():
+        # monOS Light ([light.ui] / [light.ansi]): same keys as [ui] / [ansi].
+        self.light_ui = data["light"]["ui"]
+        self.light_ansi = data["light"]["ansi"]
+        sections = {
+            "brand": self.brand,
+            "ui": self.ui,
+            "ansi": self.ansi,
+            "light.ui": self.light_ui,
+            "light.ansi": self.light_ansi,
+        }
+        for section, values in sections.items():
+            for key, value in values.items():
                 if not re.fullmatch(r"#[0-9A-Fa-f]{6}", value):
                     raise SystemExit(f"error: {section}.{key} = {value!r} is not #RRGGBB")
+        for key in self.ui:
+            if key not in self.light_ui:
+                raise SystemExit(f"error: light.ui.{key} is missing")
+        for key in self.ansi:
+            if key not in self.light_ansi:
+                raise SystemExit(f"error: light.ansi.{key} is missing")
 
     def ansi16(self) -> list[str]:
         normal = [self.ansi[n] for n in ANSI_NAMES]
@@ -112,7 +128,10 @@ class Palette:
         return normal + bright
 
     def __getitem__(self, key: str) -> str:
-        """Look up 'ui.fg', 'ansi.red', 'brand.blue'."""
+        """Look up 'ui.fg', 'ansi.red', 'brand.blue', 'light.ui.fg'."""
+        if key.startswith("light."):
+            section, name = key[len("light."):].split(".", 1)
+            return self.data["light"][section][name]
         section, name = key.split(".", 1)
         return self.data[section][name]
 
@@ -218,6 +237,38 @@ def contrast_report(p: Palette) -> tuple[list[str], bool]:
         ("brand.blue on ui.bg (non-text)", p.brand["blue"], bg, 3.0),
     ]
     for label, fg, back, target in pairs:
+        ratio = contrast(fg, back)
+        passed = ratio >= target
+        ok &= passed
+        rows.append(f"  {label:34} {ratio:5.2f}:1  (>= {target}) {'ok' if passed else 'FAIL'}")
+
+    # monOS Light, measured on light.ui.bg. In a light terminal ansi.black is
+    # text and ansi.white / ansi.bright-white are background shades.
+    lbg = p.light_ui["bg"]
+    rows.append("  -- monOS Light (on light.ui.bg) --")
+    light_checks = [
+        ("light.ui.fg", 7.0),
+        ("light.ui.fg-dim", 4.5),
+        ("light.ui.muted", 4.5),
+        ("light.ui.accent-text", 4.5),
+        ("light.ui.violet-text", 4.5),
+    ]
+    light_checks += [(f"light.ansi.{n}", 4.5) for n in ANSI_NAMES if n != "white"]
+    light_checks += [(f"light.ansi.bright-{n}", 4.5) for n in ANSI_NAMES if n != "white"]
+    for key, target in light_checks:
+        ratio = contrast(p[key], lbg)
+        passed = ratio >= target
+        ok &= passed
+        rows.append(f"  {key:26} {p[key]}  {ratio:5.2f}:1  (>= {target}) {'ok' if passed else 'FAIL'}")
+    lu = p.light_ui
+    light_pairs = [
+        ("light accent-fg on accent", lu["accent-fg"], lu["accent"], 4.5),
+        ("light fg on selection", lu["fg"], lu["selection"], 7.0),
+        ("light fg on surface2", lu["fg"], lu["surface2"], 7.0),
+        ("light fg-dim on surface2", lu["fg-dim"], lu["surface2"], 4.5),
+        ("light fg on overlay", lu["fg"], lu["overlay"], 7.0),
+    ]
+    for label, fg, back, target in light_pairs:
         ratio = contrast(fg, back)
         passed = ratio >= target
         ok &= passed
@@ -2489,6 +2540,307 @@ def gen_calamares(p: Palette) -> None:
     write(qml_path, qml)
 
 
+# --------------------------------------------------------------------------
+# Obsidian
+# --------------------------------------------------------------------------
+OBSIDIAN_THEME = "monOS"
+OBSIDIAN_DIR = AIROOTFS / "usr" / "share" / "monos" / "obsidian" / "themes" / OBSIDIAN_THEME
+OBSIDIAN_UI_FONT = "JetBrainsMono Nerd Font Propo"
+OBSIDIAN_MONO_FONT = "JetBrainsMono Nerd Font"
+
+
+def hsl(hex_color: str) -> tuple[int, int, int]:
+    """(hue degrees, saturation %, lightness %), rounded."""
+    r, g, b = (c / 255 for c in rgb(hex_color))
+    hi, lo = max(r, g, b), min(r, g, b)
+    light = (hi + lo) / 2
+    if hi == lo:
+        return 0, 0, round(light * 100)
+    d = hi - lo
+    sat = d / (2 - hi - lo) if light > 0.5 else d / (hi + lo)
+    if hi == r:
+        hue = ((g - b) / d) % 6
+    elif hi == g:
+        hue = (b - r) / d + 2
+    else:
+        hue = (r - g) / d + 4
+    return round(hue * 60) % 360, round(sat * 100), round(light * 100)
+
+
+def rgba(hex_color: str, alpha: float) -> str:
+    r, g, b = rgb(hex_color)
+    return f"rgba({r}, {g}, {b}, {alpha:g})"
+
+
+def obsidian_vars(u: dict, a: dict, brand_blue: str, dark: bool) -> list[tuple[str, str]]:
+    """CSS custom properties of one Obsidian mode (u = ui scale, a = ANSI)."""
+    h, s, l = hsl(brand_blue)
+    toward_fg = lambda c, t: mix(c, u["fg"], t)  # noqa: E731
+    orange = mix(a["red"], a["yellow"], 0.5)
+    pink = mix(a["magenta"], a["red"], 0.5)
+    named = {
+        "red": a["red"], "orange": orange, "yellow": a["yellow"], "green": a["green"],
+        "cyan": a["cyan"], "blue": a["blue"], "purple": a["magenta"], "pink": pink,
+    }
+    v: list[tuple[str, str]] = [
+        # Accent (Obsidian derives --color-accent and its variants from these).
+        ("--accent-h", f"{h}"),
+        ("--accent-s", f"{s}%"),
+        ("--accent-l", f"{l}%"),
+        # Base scale (Obsidian 1.x builds most surfaces from it).
+        ("--color-base-00", u["bg"]),
+        ("--color-base-05", mix(u["bg"], u["surface"], 0.5)),
+        ("--color-base-10", u["surface"]),
+        ("--color-base-20", u["surface2"]),
+        ("--color-base-25", u["overlay"]),
+        ("--color-base-30", u["border"]),
+        ("--color-base-35", mix(u["border"], u["muted"], 0.3)),
+        ("--color-base-40", mix(u["border"], u["muted"], 0.6)),
+        ("--color-base-50", u["muted"]),
+        ("--color-base-60", mix(u["muted"], u["fg-dim"], 0.5)),
+        ("--color-base-70", u["fg-dim"]),
+        ("--color-base-100", u["fg"]),
+    ]
+    for name, color in named.items():
+        v += [(f"--color-{name}", color), (f"--color-{name}-rgb", kde_rgb(color).replace(",", ", "))]
+    v += [
+        # Backgrounds
+        ("--background-primary", u["bg"]),
+        ("--background-primary-alt", u["surface"]),
+        ("--background-secondary", u["surface"]),
+        ("--background-secondary-alt", u["surface2"]),
+        ("--background-modifier-border", u["border"]),
+        ("--background-modifier-border-hover", toward_fg(u["border"], 0.15)),
+        ("--background-modifier-border-focus", u["accent"]),
+        ("--background-modifier-hover", rgba(u["fg"], 0.06)),
+        ("--background-modifier-active-hover", rgba(u["accent"], 0.15)),
+        ("--background-modifier-form-field", u["surface2"] if dark else u["bg"]),
+        ("--background-modifier-form-field-highlighted", u["overlay"] if dark else u["bg"]),
+        ("--background-modifier-error", a["red"]),
+        ("--background-modifier-error-hover", toward_fg(a["red"], 0.15)),
+        ("--background-modifier-success", a["green"]),
+        ("--background-modifier-message", u["overlay"]),
+        ("--background-modifier-cover", rgba(u["bg"], 0.75)),
+        ("--divider-color", u["border"]),
+        ("--divider-color-hover", u["accent"]),
+        ("--titlebar-background", u["surface"]),
+        ("--titlebar-background-focused", u["surface2"]),
+        ("--titlebar-text-color-focused", u["fg"]),
+        ("--ribbon-background", u["surface"]),
+        ("--status-bar-background", u["surface"]),
+        ("--status-bar-text-color", u["fg-dim"]),
+        ("--tab-text-color-focused-active", u["fg"]),
+        ("--tab-text-color-focused-active-current", u["fg"]),
+        ("--nav-item-color-active", u["fg"]),
+        ("--nav-item-background-active", rgba(u["accent"], 0.15)),
+        ("--icon-color-focused", u["accent-text"]),
+        ("--icon-color-hover", u["fg"]),
+        # Text
+        ("--text-normal", u["fg"]),
+        ("--text-muted", u["fg-dim"]),
+        ("--text-faint", u["muted"]),
+        ("--text-accent", u["accent-text"]),
+        ("--text-accent-hover", u["cursor"] if dark else toward_fg(u["accent-text"], 0.2)),
+        ("--text-on-accent", u["accent-fg"]),
+        ("--text-on-accent-inverted", u["bg"]),
+        ("--text-error", a["red"]),
+        ("--text-success", a["green"]),
+        ("--text-warning", a["yellow"]),
+        ("--text-selection", u["selection"]),
+        ("--text-highlight-bg", rgba(a["yellow"], 0.3)),
+        ("--text-highlight-bg-active", rgba(a["yellow"], 0.45)),
+        ("--caret-color", u["cursor"]),
+        ("--bold-color", u["fg"]),
+        ("--italic-color", u["fg"]),
+        # Interactive (buttons: brand blue with accent-fg text, 4.55:1)
+        ("--interactive-normal", u["overlay"]),
+        ("--interactive-hover", toward_fg(u["overlay"], 0.08)),
+        ("--interactive-accent", u["accent"]),
+        ("--interactive-accent-hsl", f"{h}, {s}%, {l}%"),
+        ("--interactive-accent-hover", mix(u["accent"], "#FFFFFF" if dark else "#000000", 0.12)),
+        # Headings
+        ("--inline-title-color", u["fg"]),
+        ("--h1-color", u["accent-text"]),
+        ("--h2-color", u["violet-text"]),
+        ("--h3-color", a["cyan"]),
+        ("--h4-color", a["green"]),
+        ("--h5-color", a["yellow"]),
+        ("--h6-color", u["fg-dim"]),
+        # Links
+        ("--link-color", u["accent-text"]),
+        ("--link-color-hover", u["cursor"] if dark else toward_fg(u["accent-text"], 0.2)),
+        ("--link-external-color", a["cyan"]),
+        ("--link-external-color-hover", a["bright-cyan"]),
+        ("--link-unresolved-color", u["accent-text"]),
+        ("--link-unresolved-opacity", "0.7"),
+        ("--link-unresolved-decoration-color", rgba(u["accent-text"], 0.4)),
+        # Code
+        ("--code-background", u["surface"]),
+        ("--code-normal", u["fg"]),
+        ("--code-comment", u["muted"]),
+        ("--code-function", a["blue"]),
+        ("--code-important", a["red"]),
+        ("--code-keyword", a["magenta"]),
+        ("--code-operator", u["fg-dim"]),
+        ("--code-property", a["cyan"]),
+        ("--code-punctuation", u["fg-dim"]),
+        ("--code-string", a["green"]),
+        ("--code-tag", a["red"]),
+        ("--code-value", a["yellow"]),
+        # Callouts (RGB triplets)
+        ("--callout-default", "var(--color-blue-rgb)"),
+        ("--callout-info", "var(--color-blue-rgb)"),
+        ("--callout-todo", "var(--color-blue-rgb)"),
+        ("--callout-summary", "var(--color-cyan-rgb)"),
+        ("--callout-tip", "var(--color-cyan-rgb)"),
+        ("--callout-important", "var(--color-cyan-rgb)"),
+        ("--callout-success", "var(--color-green-rgb)"),
+        ("--callout-question", "var(--color-yellow-rgb)"),
+        ("--callout-warning", "var(--color-orange-rgb)"),
+        ("--callout-fail", "var(--color-red-rgb)"),
+        ("--callout-error", "var(--color-red-rgb)"),
+        ("--callout-bug", "var(--color-red-rgb)"),
+        ("--callout-example", "var(--color-purple-rgb)"),
+        ("--callout-quote", kde_rgb(u["fg-dim"]).replace(",", ", ")),
+        ("--callout-radius", "var(--radius-m)"),
+        # Tags
+        ("--tag-color", u["accent-text"]),
+        ("--tag-color-hover", u["accent-text"]),
+        ("--tag-background", rgba(u["accent"], 0.12)),
+        ("--tag-background-hover", rgba(u["accent"], 0.22)),
+        ("--tag-border-color", rgba(u["accent"], 0.3)),
+        ("--tag-border-color-hover", rgba(u["accent"], 0.5)),
+        ("--tag-border-width", "1px"),
+        ("--tag-radius", "var(--radius-s)"),
+        # Tables
+        ("--table-border-color", u["border"]),
+        ("--table-header-background", u["surface2"]),
+        ("--table-header-background-hover", u["overlay"]),
+        ("--table-header-color", u["fg"]),
+        ("--table-row-alt-background", u["surface"]),
+        ("--table-row-background-hover", rgba(u["accent"], 0.08)),
+        ("--table-selection", rgba(u["accent"], 0.15)),
+        # Blockquotes
+        ("--blockquote-border-color", u["accent"]),
+        ("--blockquote-border-thickness", "3px"),
+        ("--blockquote-color", u["fg-dim"]),
+        ("--blockquote-background-color", "transparent"),
+        # Checkboxes
+        ("--checkbox-color", u["accent"]),
+        ("--checkbox-color-hover", mix(u["accent"], "#FFFFFF" if dark else "#000000", 0.12)),
+        ("--checkbox-border-color", u["muted"]),
+        ("--checkbox-border-color-hover", u["fg-dim"]),
+        ("--checkbox-marker-color", u["accent-fg"]),
+        ("--checkbox-radius", "var(--radius-s)"),
+        ("--checklist-done-color", u["muted"]),
+        # Horizontal rules, embeds, misc
+        ("--hr-color", u["border"]),
+        ("--embed-border-left", f"2px solid {u['accent']}"),
+        ("--flashing-background", rgba(u["accent"], 0.25)),
+        # Scrollbars
+        ("--scrollbar-bg", "transparent"),
+        ("--scrollbar-thumb-bg", rgba(u["fg"], 0.12)),
+        ("--scrollbar-active-thumb-bg", rgba(u["fg"], 0.25)),
+        # Graph view
+        ("--graph-text", u["fg"]),
+        ("--graph-line", u["border"]),
+        ("--graph-node", u["fg-dim"]),
+        ("--graph-node-unresolved", u["muted"]),
+        ("--graph-node-focused", u["accent-text"]),
+        ("--graph-node-tag", a["green"]),
+        ("--graph-node-attachment", a["yellow"]),
+    ]
+    return v
+
+
+def gen_obsidian(p: Palette) -> None:
+    """Obsidian community theme 'monOS' (dark + light), installed into every
+    vault by /usr/local/bin/monos-obsidian-theme-sync."""
+    common = [
+        ("--font-interface-theme", f'"{OBSIDIAN_UI_FONT}"'),
+        ("--font-text-theme", f'"{OBSIDIAN_UI_FONT}"'),
+        ("--font-monospace-theme", f'"{OBSIDIAN_MONO_FONT}"'),
+        # Radii consistent with Klassy (window radius 8).
+        ("--radius-s", "4px"),
+        ("--radius-m", "6px"),
+        ("--radius-l", "8px"),
+        ("--radius-xl", "12px"),
+        ("--callout-border-width", "0px"),
+        ("--callout-border-opacity", "0.25"),
+    ]
+
+    def block(selector: str, pairs: list[tuple[str, str]]) -> str:
+        return selector + " {\n" + "".join(f"  {k}: {v};\n" for k, v in pairs) + "}\n"
+
+    blue = p.brand["blue"]
+    dark = obsidian_vars(p.ui, p.ansi, blue, dark=True)
+    light = obsidian_vars(p.light_ui, p.light_ansi, blue, dark=False)
+    rules = """
+/* Selection and scrollbars */
+::selection {
+  background-color: var(--text-selection);
+}
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb-bg);
+  border-radius: var(--radius-l);
+}
+::-webkit-scrollbar-thumb:active,
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-active-thumb-bg);
+}
+
+/* Callouts: tinted background, accent stripe */
+.callout {
+  border-left: 3px solid rgb(var(--callout-color));
+}
+
+/* Inline code */
+.markdown-rendered :not(pre) > code,
+.cm-s-obsidian span.cm-inline-code {
+  border-radius: var(--radius-s);
+}
+
+/* Tables: alternate rows */
+.markdown-rendered tbody tr:nth-child(even) {
+  background-color: var(--table-row-alt-background);
+}
+
+/* Highlighted text keeps the normal text color */
+.markdown-rendered mark,
+.cm-s-obsidian span.cm-highlight {
+  color: var(--text-normal);
+}
+"""
+    css = (
+        "/*\n"
+        f" * {GEN_NOTE}\n"
+        " * Source: branding/palette/monos.toml\n"
+        " *\n"
+        " * monOS theme for Obsidian: .theme-dark uses the monOS dark palette,\n"
+        " * .theme-light uses monOS Light. Brand blue is used for surfaces and\n"
+        " * buttons; links and accent text use the text-safe accent.\n"
+        " */\n\n"
+        + block("body", common)
+        + "\n"
+        + block(".theme-dark", dark)
+        + "\n"
+        + block(".theme-light", light)
+        + rules
+    )
+    manifest = {
+        "name": OBSIDIAN_THEME,
+        "version": "1.0.0",
+        "minAppVersion": "1.0.0",
+        "author": "monOS Project",
+    }
+    write(OBSIDIAN_DIR / "theme.css", css)
+    write(OBSIDIAN_DIR / "manifest.json", json.dumps(manifest, indent=2) + "\n")
+
+
 def gen_os_release(p: Palette) -> None:
     """ANSI_COLOR (used by systemd and fastfetch for the distro name)."""
     path = AIROOTFS / "etc" / "os-release"
@@ -2559,6 +2911,7 @@ def main() -> int:
     gen_shortcuts()
     gen_dolphin()
     gen_vscode(palette)
+    gen_obsidian(palette)
     gen_sddm(palette)
     gen_plymouth(palette)
     gen_grub(palette, read_grub_font_names())

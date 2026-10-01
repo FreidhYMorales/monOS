@@ -1,0 +1,13 @@
+# monOS: re-run monos-obsidian-theme.service when Obsidian's vault list
+# changes (a vault was created or opened). The file and its directories may
+# not exist yet: systemd then watches the closest existing parent directory.
+[Unit]
+Description=Watch Obsidian's vault list for the monOS theme
+
+[Path]
+PathChanged=%h/.config/obsidian/obsidian.json
+PathChanged=%h/.var/app/md.obsidian.Obsidian/config/obsidian/obsidian.json
+Unit=monos-obsidian-theme.service
+
+[Install]
+WantedBy=default.target

@@ -158,6 +158,20 @@ haruna
 discover
 flatpak
 plasma-systemmonitor
+# KDE essentials: Dolphin plugins (git, mounts), extra KIO workers (sftp, smb,
+# thumbnails, ...), thumbnails for documents and videos, admin:// in Dolphin,
+# Plasma widgets, phone integration, partition editor, calculator and the
+# browser integration (media controls, downloads in notifications)
+dolphin-plugins
+kio-extras
+kdegraphics-thumbnailers
+ffmpegthumbs
+kio-admin
+kdeplasma-addons
+kdeconnect
+partitionmanager
+kcalc
+plasma-browser-integration
 
 # --- Terminal ---
 # kitty is the default; foot is the fallback because kitty needs
@@ -181,17 +195,54 @@ vulkan-radeon
 vulkan-intel
 power-profiles-daemon
 zram-generator
+# Firmware updates (LVFS, shown in Discover), firewall (ufw, enabled with
+# deny incoming / allow outgoing; Plasma's Firewall settings page) and printing
+# (CUPS, socket-activated; Plasma's printer settings). cups-pdf is not
+# installed: the Qt, GTK and Firefox print dialogs already print to PDF.
+fwupd
+ufw
+plasma-firewall
+cups
+print-manager
 pacman-contrib
 xdg-user-dirs
 noto-fonts
 noto-fonts-emoji
+# Chinese/Japanese/Korean glyphs, and metric-compatible Arial/Times/Courier
+noto-fonts-cjk
+ttf-liberation
 ttf-jetbrains-mono-nerd
+# GStreamer: PipeWire source/sink and FFmpeg decoders (Qt Multimedia, thumbnails)
+gst-plugin-pipewire
+gst-libav
 # English OCR data for Spectacle (otherwise the first 'tessdata' provider, Afrikaans, is picked)
 tesseract-data-eng
 
+# --- Graphics drivers ---
+# Mesa (above) covers AMD, Intel and nouveau. intel-media-driver: VA-API video
+# decoding on Intel Broadwell and newer; thermald: Intel thermal daemon.
+# NVIDIA: open kernel modules (Turing / GTX 16xx / RTX 20xx and newer) for both
+# kernels, userspace and VA-API (libva-nvidia-driver). On the live session
+# nouveau stays usable for older NVIDIA GPUs (see /etc/modprobe.d/
+# monos-nouveau-gate.conf); the installer removes what the machine does not
+# need (/etc/calamares/scripts/monos-hardware-cleanup.sh).
+intel-media-driver
+thermald
+nvidia-open
+nvidia-open-lts
+nvidia-utils
+libva-nvidia-driver
+
 # --- Development ---
 git
+git-lfs
 github-cli
+gdb
+just
+shellcheck
+# Python package/project manager and polyglot runtime/tool version manager
+uv
+mise
 base-devel
 gcc
 clang
@@ -263,6 +314,9 @@ gvfs-mtp
 
 # --- Applications ---
 firefox
+# Markdown notes (monOS theme applied to every vault, see
+# /usr/local/bin/monos-obsidian-theme-sync)
+obsidian
 
 # --- Installer (Calamares) ---
 # calamares, ckbcomp and yay-bin come from the local [monos] repository

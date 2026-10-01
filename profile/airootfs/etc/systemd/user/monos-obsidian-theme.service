@@ -1,0 +1,13 @@
+# monOS: install the monOS theme into the user's Obsidian vaults
+# (see /usr/local/bin/monos-obsidian-theme-sync). Runs at login and whenever
+# monos-obsidian-theme.path sees Obsidian's vault list change.
+[Unit]
+Description=Apply the monOS theme to Obsidian vaults
+ConditionPathExists=/usr/share/monos/obsidian/themes/monOS/theme.css
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/monos-obsidian-theme-sync
+
+[Install]
+WantedBy=default.target

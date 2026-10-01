@@ -1,0 +1,39 @@
+#!/bin/sh
+# monOS live session: decide whether nouveau may drive the NVIDIA GPU.
+#
+# Called by modprobe instead of loading nouveau (see
+# /etc/modprobe.d/monos-nouveau-gate.conf). nvidia-utils blacklists nouveau,
+# which leaves GPUs older than Turing (not supported by nvidia-open) without
+# any driver. On the live session that blacklist entry is dropped and this
+# gate loads nouveau unless nvidia-open can drive the GPU:
+#
+#   - nvidia-open-supported says a GPU is supported and the nvidia
+#     module exists for the running kernel  -> do not load nouveau
+#   - otherwise (pre-Turing GPU, module missing)  -> load nouveau
+#   - "module_blacklist=nvidia" or "modprobe.blacklist=nvidia" on the kernel
+#     command line forces nouveau
+#
+# Live only: the installer deletes this gate, and the installed system uses
+# the stock nvidia-utils configuration (or no NVIDIA packages at all).
+
+load_nouveau() {
+    exec /usr/bin/modprobe --ignore-install nouveau
+}
+
+for arg in $(cat /proc/cmdline 2>/dev/null); do
+    case "$arg" in
+        module_blacklist=*|modprobe.blacklist=*)
+            case ",${arg#*=}," in
+                *,nvidia,*) load_nouveau ;;
+            esac
+            ;;
+    esac
+done
+
+/usr/bin/modinfo -k "$(uname -r)" nvidia >/dev/null 2>&1 || load_nouveau
+
+if /usr/local/lib/monos/nvidia-open-supported; then
+    # nvidia-open drives this GPU: keep nouveau unloaded (success, no module).
+    exit 0
+fi
+load_nouveau

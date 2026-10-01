@@ -59,3 +59,45 @@ bright-blue = "#6AA6FF"
 bright-magenta = "#B894FF"
 bright-cyan = "#5CD8F0"
 bright-white = "#F5F7FA"
+
+# ---------------------------------------------------------------------------
+# monOS Light: light UI scale and terminal palette. Same keys as [ui]/[ansi];
+# the scale goes from the lightest surface (bg) towards the text color.
+# Used by the Obsidian theme (.theme-light) and reused by the light desktop
+# variant. Contrast targets are measured on light.ui.bg like the dark ones,
+# except that ansi.white and ansi.bright-white are background shades here
+# (ansi.black is a text color in a light terminal).
+[light.ui]
+bg = "#FCFCFC"          # brand white
+surface = "#F3F5F8"
+surface2 = "#EAEDF2"
+overlay = "#E1E5EC"     # buttons, popups, menus
+border = "#CDD3DD"
+fg = "#1A1E27"
+fg-dim = "#454D5C"
+muted = "#5E6778"
+selection = "#C9DCFC"
+accent = "#0C6BFA"      # brand blue (4.55:1 on bg, also text-safe here)
+accent-fg = "#FCFCFC"
+accent-text = "#0A5AD6"
+violet = "#7C3AED"
+violet-text = "#6D28D9"
+cursor = "#0C6BFA"
+
+[light.ansi]
+black = "#1A1E27"
+red = "#C4232A"
+green = "#18794A"
+yellow = "#8A5A00"
+blue = "#0A5AD6"
+magenta = "#7C3AED"
+cyan = "#0B6F87"
+white = "#CDD3DD"
+bright-black = "#5E6778"
+bright-red = "#D63A40"
+bright-green = "#16834F"
+bright-yellow = "#9A6700"
+bright-blue = "#2F6FE0"
+bright-magenta = "#8B4CF0"
+bright-cyan = "#08788F"
+bright-white = "#E1E5EC"

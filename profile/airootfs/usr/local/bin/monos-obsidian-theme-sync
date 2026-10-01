@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+"""Install the monOS Obsidian theme into every vault of the current user.
+
+For each vault listed in Obsidian's vault list (~/.config/obsidian/obsidian.json,
+also the Flatpak location) whose folder exists:
+
+  1. copy/refresh <vault>/.obsidian/themes/monOS/{manifest.json,theme.css}
+     from /usr/share/monos/obsidian/themes/monOS (only these two files are
+     touched);
+  2. if <vault>/.obsidian/appearance.json is missing or has no "cssTheme"
+     key, set "cssTheme": "monOS" (other keys are kept). A theme the user
+     picked, including Obsidian's default (cssTheme ""), is never changed.
+
+Started by the systemd user units monos-obsidian-theme.path (when the vault
+list changes) and monos-obsidian-theme.service (at login). Idempotent; does
+nothing when Obsidian was never started. Writes are atomic.
+
+Environment (for tests): HOME, XDG_CONFIG_HOME, MONOS_OBSIDIAN_THEME_DIR.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+import tempfile
+from pathlib import Path
+
+THEME_NAME = "monOS"
+THEME_FILES = ("manifest.json", "theme.css")
+
+
+def log(message: str) -> None:
+    print(f"monos-obsidian-theme-sync: {message}", file=sys.stderr)
+
+
+def vault_lists() -> list[Path]:
+    home = Path(os.environ.get("HOME") or Path.home())
+    config = Path(os.environ.get("XDG_CONFIG_HOME") or home / ".config")
+    return [
+        config / "obsidian" / "obsidian.json",
+        home / ".var" / "app" / "md.obsidian.Obsidian" / "config" / "obsidian" / "obsidian.json",
+    ]
+
+
+def vault_paths(list_file: Path) -> list[Path]:
+    try:
+        data = json.loads(list_file.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return []
+    except (OSError, ValueError) as err:
+        log(f"cannot read {list_file}: {err}")
+        return []
+    vaults = data.get("vaults") if isinstance(data, dict) else None
+    if not isinstance(vaults, dict):
+        return []
+    paths = []
+    for entry in vaults.values():
+        if isinstance(entry, dict) and isinstance(entry.get("path"), str):
+            paths.append(Path(entry["path"]))
+    return paths
+
+
+def atomic_write(path: Path, data: bytes) -> None:
+    """Write data to path through a temporary file in the same directory."""
+    fd, tmp = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except FileNotFoundError:
+            pass
+        raise
+
+
+def install_theme(source: Path, vault: Path) -> bool:
+    """Copy the theme files into the vault; True when something changed."""
+    dest = vault / ".obsidian" / "themes" / THEME_NAME
+    dest.mkdir(parents=True, exist_ok=True)
+    changed = False
+    for name in THEME_FILES:
+        new = (source / name).read_bytes()
+        target = dest / name
+        try:
+            if target.read_bytes() == new:
+                continue
+        except FileNotFoundError:
+            pass
+        atomic_write(target, new)
+        changed = True
+    return changed
+
+
+def select_theme(vault: Path) -> bool:
+    """Set cssTheme when the vault has not chosen a theme; True when set."""
+    appearance = vault / ".obsidian" / "appearance.json"
+    data: dict = {}
+    try:
+        text = appearance.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        text = None
+    if text is not None and text.strip():
+        try:
+            loaded = json.loads(text)
+        except ValueError:
+            log(f"{appearance}: not valid JSON, left unchanged")
+            return False
+        if not isinstance(loaded, dict):
+            log(f"{appearance}: not a JSON object, left unchanged")
+            return False
+        data = loaded
+    if "cssTheme" in data:
+        return False
+    data["cssTheme"] = THEME_NAME
+    atomic_write(appearance, (json.dumps(data, indent=2, ensure_ascii=False) + "\n").encode("utf-8"))
+    return True
+
+
+def main() -> int:
+    source = Path(os.environ.get("MONOS_OBSIDIAN_THEME_DIR", f"/usr/share/monos/obsidian/themes/{THEME_NAME}"))
+    if not all((source / name).is_file() for name in THEME_FILES):
+        log(f"theme not found in {source}, nothing to do")
+        return 0
+
+    seen: set[Path] = set()
+    for list_file in vault_lists():
+        for vault in vault_paths(list_file):
+            vault = vault.expanduser()
+            if vault in seen:
+                continue
+            seen.add(vault)
+            if not vault.is_dir():
+                continue
+            try:
+                copied = install_theme(source, vault)
+                selected = select_theme(vault)
+            except OSError as err:
+                log(f"{vault}: {err}")
+                continue
+            if copied or selected:
+                what = ", ".join(w for w, done in (("theme files updated", copied), ("theme selected", selected)) if done)
+                log(f"{vault}: {what}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -35,4 +35,10 @@ file_permissions=(
   ["/usr/local/bin/monos-tiling-toggle"]="0:0:755"
   ["/etc/calamares/scripts/monos-target-cleanup.sh"]="0:0:755"
   ["/etc/calamares/scripts/monos-snapper-setup.sh"]="0:0:755"
+  ["/etc/calamares/scripts/monos-hardware-cleanup.sh"]="0:0:755"
+  # Live nouveau/nvidia gate (see /etc/modprobe.d/monos-nouveau-gate.conf).
+  ["/usr/local/lib/monos/nvidia-open-supported"]="0:0:755"
+  ["/usr/local/lib/monos/nouveau-gate"]="0:0:755"
+  # Installs the monOS Obsidian theme into every vault (systemd user units).
+  ["/usr/local/bin/monos-obsidian-theme-sync"]="0:0:755"
 )

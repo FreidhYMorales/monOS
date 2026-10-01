@@ -1,0 +1,26 @@
+# remove from airootfs!
+# monOS: let nouveau drive pre-Turing NVIDIA GPUs on the live session.
+#
+# nvidia-utils ships /usr/lib/modprobe.d/nvidia-utils.conf with
+# "blacklist nouveau". A file with the same name in /etc/modprobe.d replaces
+# it, so this hook writes such a copy without that line (keeping nvidia-utils'
+# other settings: nova blacklist, softdeps, module options). nouveau is then
+# only loaded through /etc/modprobe.d/monos-nouveau-gate.conf, which skips it
+# when nvidia-open can drive the GPU. The name sorts before
+# 90-mkinitcpio-install.hook, so the live initramfs gets the same files.
+# The installer deletes the copy (monos-target-cleanup.sh): the installed
+# system uses the stock nvidia-utils file, or none when the installer removes
+# the NVIDIA packages.
+
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = nvidia-utils
+
+[Action]
+Description = Writing the monOS live nouveau/nvidia modprobe configuration...
+When = PostTransaction
+Depends = sh
+Depends = sed
+Exec = /bin/sh -c 'sed -e "1i # monOS live session: copy of /usr/lib/modprobe.d/nvidia-utils.conf without \"blacklist nouveau\" (see monos-nouveau-gate.conf)." -e "/^[[:space:]]*blacklist[[:space:]][[:space:]]*nouveau[[:space:]]*$/d" /usr/lib/modprobe.d/nvidia-utils.conf > /etc/modprobe.d/nvidia-utils.conf'

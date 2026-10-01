@@ -140,7 +140,10 @@ from a blank machine.
   pacman's mkinitcpio hook would.
 - yay: kept by default; if you choose "Do not install yay" it is removed.
 - Calamares, ckbcomp, mkinitcpio-archiso, archinstall and livecd-sounds are
-  removed from the installed system.
+  removed from the installed system, together with live-medium tools (see
+  [Hardware, drivers and services](#hardware-drivers-and-services)).
+- Drivers and VM guest tools the machine does not need are removed
+  (NVIDIA, thermald, intel-media-driver, guest tools).
 - Boot loader: GRUB for UEFI (boot entry "monOS") and BIOS, with os-prober.
 - Users: your user is in `wheel` (sudo with password) and `docker`; login shell
   zsh; SDDM without autologin unless you ask for it.
@@ -180,11 +183,115 @@ To roll back after a bad update:
 `/home`, `/var/log` and the package cache are separate subvolumes, so a rollback
 never reverts your files or logs.
 
+## Hardware, drivers and services
+
+### Packages
+
+`profile/packages.x86_64` is grouped by purpose. Besides the base system and
+Plasma it ships:
+
+| Group | Packages |
+|-------|----------|
+| KDE essentials | dolphin-plugins, kio-extras, kdegraphics-thumbnailers, ffmpegthumbs, kio-admin, kdeplasma-addons, kdeconnect, partitionmanager, kcalc, plasma-browser-integration |
+| System | fwupd (firmware updates in Discover), ufw + plasma-firewall, cups + print-manager |
+| Development | git-lfs, gdb, just, shellcheck, uv, mise (plus the existing toolchains) |
+| Fonts | noto-fonts-cjk, ttf-liberation |
+| Multimedia | gst-plugin-pipewire, gst-libav |
+| Drivers | intel-media-driver, thermald, nvidia-open, nvidia-open-lts, nvidia-utils, libva-nvidia-driver |
+| Applications | obsidian |
+
+Not included: `cups-pdf` (the Qt, GTK and Firefox print dialogs already print
+to PDF), `system-config-printer` (print-manager is the KDE tool),
+`nvidia-settings` (mostly X11 settings; `nvidia-smi` covers monitoring on
+Wayland) and 32-bit NVIDIA libraries (no multilib).
+
+### NVIDIA
+
+monOS ships the NVIDIA **open** kernel modules (`nvidia-open` for `linux`,
+`nvidia-open-lts` for `linux-lts`). Since driver 590 NVIDIA only supports
+Turing (GTX 16xx, RTX 20xx) and newer GPUs, which is exactly what the open
+modules support. No extra configuration is needed: `nvidia-drm` enables
+`modeset` and `fbdev` by default, and nvidia-utils blacklists `nouveau`
+(and `nova`) through `/usr/lib/modprobe.d/nvidia-utils.conf`. The modules
+are loaded after the initramfs (no early KMS), so the boot splash uses the
+firmware framebuffer and the desktop the NVIDIA driver.
+
+Older NVIDIA GPUs (Maxwell, Pascal, Volta and earlier) need `nouveau`, which
+that blacklist would disable. The live session therefore decides per machine,
+with no extra boot entry:
+
+- At ISO build time the pacman hook `41-monos-nvidia-live.hook` writes
+  `/etc/modprobe.d/nvidia-utils.conf`, a copy of nvidia-utils' file without
+  `blacklist nouveau` (a file with the same name in `/etc` replaces the one
+  in `/usr/lib`).
+- `/etc/modprobe.d/monos-nouveau-gate.conf` routes every `nouveau` load
+  through `/usr/local/lib/monos/nouveau-gate`, which loads nouveau only when
+  no GPU is supported by nvidia-open (or the nvidia module is missing).
+- Detection (`/usr/local/lib/monos/nvidia-open-supported`): NVIDIA display
+  controllers (PCI vendor `10de`, class `03xx`) from `/sys/bus/pci/devices`,
+  compared with the "Current NVIDIA GPUs" table of the README shipped by
+  nvidia-utils (`/usr/share/doc/nvidia/html/supportedchips.html`); without
+  it, device ID >= `0x1E00` (first Turing ID).
+- To force nouveau on a supported GPU, add `module_blacklist=nvidia` to the
+  kernel command line. If the desktop does not start at all, use the
+  "safe graphics, nomodeset" entry.
+
+The installed system does not keep that gate: it uses the stock nvidia-utils
+configuration, or no NVIDIA packages at all (below).
+
+### Installer hardware cleanup
+
+`/etc/calamares/scripts/monos-hardware-cleanup.sh` (`shellprocess@hardware`,
+right after the general cleanup and before the packages module and
+`initcpio`) detects the hardware on the live system and removes from the
+target what it does not need, in one pacman transaction (`-Rns`, with
+mkinitcpio's pacman hook masked; the `initcpio` module rebuilds the
+initramfs afterwards):
+
+| Condition | Removed |
+|-----------|---------|
+| no NVIDIA GPU, or only pre-Turing ones | nvidia-open, nvidia-open-lts, nvidia-utils, libva-nvidia-driver |
+| CPU is not Intel | thermald (disabled first) |
+| no Intel GPU | intel-media-driver |
+| bare metal (`systemd-detect-virt --vm` = none) | open-vm-tools, qemu-guest-agent, virtualbox-guest-utils-nox, hyperv (units disabled first) |
+| VMware / KVM-QEMU / VirtualBox / Hyper-V | the guest tools of the other hypervisors |
+
+An unknown hypervisor keeps every guest tool; if NVIDIA detection fails the
+driver is kept.
+
+The packages module (`modules/packages.conf`, `try_remove`, i.e. `pacman -Rs`
+per package, which never removes explicitly installed or still-required
+packages) removes live-medium tools: clonezilla, partclone, partimage,
+fsarchiver (imaging/rescue), irssi, lynx, darkhttpd (install guide and PXE
+helpers), mc (yazi covers it), xl2tpd, pptpclient, wvdial (legacy dial-up
+and VPN), espeakup and brltty (speech/braille boot; brltty also claims
+CH340/CH341 USB-serial adapters), memtest86+, memtest86+-efi, edk2-shell,
+refind and syslinux (they only boot the ISO; GRUB boots the installed
+system). Kept on purpose: ddrescue, testdisk, nmap, tcpdump, rsync, openssh,
+openvpn, openconnect (with vpnc, which it needs), smartmontools, nvme-cli and
+mkinitcpio-nfs-utils (removing it would rebuild every initramfs once more).
+
+### Services
+
+| Unit | Live | Installed | Notes |
+|------|------|-----------|-------|
+| `cups.socket` | yes | yes | printing, started on demand |
+| `ufw.service` | yes | yes | `ENABLED=yes` is set in `/etc/ufw/ufw.conf` at build time (pacman hook `41-monos-ufw-enable.hook`, the file belongs to the ufw package); default policy deny incoming, allow outgoing |
+| `thermald.service` | yes | Intel CPUs only | skipped in VMs (`ConditionVirtualization=no`) |
+| VM guest tools | yes | matching hypervisor only | units have virtualization conditions |
+| fwupd | D-Bus activated | D-Bus activated | Discover refreshes the LVFS metadata; no timer |
+
+The firewall blocks incoming connections, so KDE Connect cannot find your
+phone until you open its ports: `sudo ufw allow 1714:1764/udp` and
+`sudo ufw allow 1714:1764/tcp` (or System Settings > Firewall). Docker
+publishes container ports through its own iptables rules, which bypass ufw.
+
 ## Phase 3: theming
 
 Everything is themed from one palette, `branding/palette/monos.toml` (brand
 colors, a dark UI scale and a 16-color terminal palette with WCAG contrast
-targets). Two scripts turn it into files of the archiso profile:
+targets, plus the monOS Light scale and terminal palette in `[light.ui]` /
+`[light.ansi]`). Two scripts turn it into files of the archiso profile:
 
 ```sh
 ./branding/tools/install-branding.sh   # artwork + runs gen-themes.py
@@ -209,6 +316,7 @@ the installed system.
 | Cursor | Bibata-Modern-Ice, 24 px, for Plasma, GTK apps and the SDDM greeter | `/etc/xdg/kcminputrc` (also synced to GTK by kde-gtk-config at login), Global Theme defaults, `/etc/sddm.conf.d/10-monos-theme.conf` |
 | Shortcuts | see the table below | `/etc/skel/.config/kglobalshortcutsrc` (new users), `X-KDE-Shortcuts` in `/usr/local/share/applications/monos-tiling-toggle.desktop` (all users) |
 | Dolphin | details view, hidden files shown, editable location bar with the full path, full path in the title bar | `/etc/xdg/dolphinrc`, `/etc/skel/.local/share/dolphin/view_properties/global/.directory` |
+| Obsidian | `monOS` theme (monOS dark and monOS Light, JetBrainsMono Nerd Font, radius 4-12 px), selected in every vault that has not chosen a theme | `/usr/share/monos/obsidian/themes/monOS`, copied into each vault by `monos-obsidian-theme-sync` (see [Obsidian](#obsidian)) |
 | VS Code (Code - OSS) | `monOS` color theme (workbench, terminal ANSI colors, syntax and semantic tokens), JetBrainsMono Nerd Font with ligatures, Seti icons, custom title bar, telemetry off | theme: built-in extension `/usr/lib/code/extensions/monos-theme`; settings: `/etc/skel/.config/Code - OSS/User/settings.json` |
 | Terminals and CLI | kitty, foot, btop, yazi (theme and yatline bars), bat (`--theme=ansi`), fzf, lazygit, zellij, helix, starship, fastfetch; behavior: see [Shell & CLI defaults](#shell--cli-defaults) | files in `/etc/skel/.config` (and a block in `/etc/skel/.zshrc`), copied to new users' homes |
 | Neovim / Vim | `monos` colorscheme only (no plugins, no user config) | `/usr/local/share/nvim/site` and `/usr/share/vim/vimfiles`; used when the user config does not pick a colorscheme |
@@ -245,6 +353,28 @@ Notes on shortcuts:
   System Settings > Keyboard > Shortcuts > KWin). Its "Set master" is moved to
   Meta+Shift+Return because Meta+Return opens kitty. Meta+T stays KWin's tile
   editor.
+
+### Obsidian
+
+`gen-themes.py` renders the `monOS` Obsidian theme
+(`/usr/share/monos/obsidian/themes/monOS/{manifest.json,theme.css}`):
+`.theme-dark` uses the dark palette, `.theme-light` the `[light.ui]` /
+`[light.ansi]` palette (monOS Light). Brand blue is used for buttons and
+checkboxes; links, tags and accent text use the text-safe accent. It covers
+backgrounds, borders, text, headings, links, code, callouts, tags, tables,
+blockquotes, checkboxes, selection, scrollbars and the graph view.
+
+Obsidian only loads themes from inside each vault, so the systemd user units
+`monos-obsidian-theme.path` (watches `~/.config/obsidian/obsidian.json`, the
+vault list, also the Flatpak location) and `monos-obsidian-theme.service`
+(at login), enabled for every user in `/etc/systemd/user/default.target.wants`,
+run `/usr/local/bin/monos-obsidian-theme-sync`. For each existing vault it
+refreshes `.obsidian/themes/monOS` (only its own two files) and, if
+`.obsidian/appearance.json` has no `cssTheme` key, sets `"cssTheme": "monOS"`
+keeping the other settings. A theme you picked, including Obsidian's default,
+is never changed. Run the script by hand to apply the theme right away;
+disable it with `systemctl --user disable --now monos-obsidian-theme.path
+monos-obsidian-theme.service`.
 
 fastfetch is not started automatically: run `fastfetch` (ASCII logo, any
 terminal) or, in kitty, `fastfetch -c monos-kitty` (logo as an image).
@@ -408,7 +538,7 @@ clipboard plugin above uses `wl-clipboard`).
     ├── airootfs/         # files copied into the live root filesystem
     │   ├── etc/          # os-release, users, SDDM autologin, services, KDE defaults, skel
     │   ├── etc/calamares # installer settings, modules, branding, helper scripts
-    │   ├── usr/local/    # installer launcher (monos-install), tiling toggle, menu entries
+    │   ├── usr/local/    # installer launcher (monos-install), tiling toggle, Obsidian theme sync, NVIDIA gate, menu entries
     │   └── home/liveuser # installer desktop icon (dotfiles come from etc/skel)
     ├── efiboot/          # systemd-boot entries (UEFI)
     ├── grub/             # GRUB menus
