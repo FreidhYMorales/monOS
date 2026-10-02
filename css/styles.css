@@ -237,3 +237,8 @@ body:before {
   .reveal { opacity: 1; transform: none; transition: none; }
   .product-card, .creator-card, .button, .has-shot .product-image img { transition: none; }
 }
+
+/* Navigation: keep links on one line; drop the edition pill on mid-size screens. */
+.desktop-nav a { white-space: nowrap; }
+.theme-switch .switch-label { white-space: nowrap; }
+@media (max-width: 1400px) { .edition-pill { display: none; } }

@@ -25,7 +25,7 @@
 <header class="site-header">
   <a class="brand" href="#inicio"><span class="brand-mark"><img src="images/logo.png" alt="Logo de monOS" /></span><span>mon<span class="brand-accent">OS</span></span></a>
   <nav class="desktop-nav">
-    <a href="#video">Video</a><a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Instalación</a><a href="#equipo">Equipo</a>
+    <a href="#video">Video</a><a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Descarga</a><a href="#requisitos">Requisitos</a><a href="#equipo">Equipo</a>
   </nav>
   <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="mobile-nav">Menú <span>☰</span></button>
   <div class="edition-pill"><span class="status-dot"></span> Basado en Linux · 2026</div>
@@ -34,7 +34,7 @@
   </button>
 </header>
 <nav class="mobile-nav" id="mobile-nav">
-  <a href="#video">Video</a><a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Instalación</a><a href="#equipo">Equipo</a>
+  <a href="#video">Video</a><a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Descarga</a><a href="#requisitos">Requisitos</a><a href="#equipo">Equipo</a>
 </nav>
 
 <main id="inicio">
@@ -46,6 +46,7 @@
       <div class="hero-actions">
         <a class="button button-primary" href="#caracteristicas">Ver características <span>↗</span></a>
         <a class="button button-quiet" href="#video">Ver video</a>
+        <a class="button button-quiet" href="https://drive.google.com/uc?export=download&amp;id=1jI_J5dfLlMX_wgDelsLx_jNEyQbQlzbg" target="_blank" rel="noopener">Descargar ISO</a>
       </div>
       <div class="hero-meta"><span><strong>Arch</strong> base</span><span><strong>Dev</strong> enfoque</span><span><strong>2026</strong> proyecto</span></div>
     </div>
@@ -62,7 +63,7 @@
   <section class="video-section section-shell" id="video">
     <div class="section-heading reveal">
       <div><p class="eyebrow">00 / Demo</p><h2>monOS,<br/><em>en video.</em></h2></div>
-      <p class="section-note">Un recorrido por el escritorio, la terminal y las herramientas, grabado en una instalación real.</p>
+      <p class="section-note">Un recorrido por el escritorio, la terminal y las herramientas, grabado en una instalación real. <a class="text-link" href="https://canva.link/wpiagjtaslqzh9e" target="_blank" rel="noopener">Ver la presentación ↗</a></p>
     </div>
     <div class="video-frame reveal">
       <video controls preload="none" playsinline poster="media/showcase-poster.webp">
@@ -95,7 +96,7 @@
   <section class="recommendations-section section-shell" id="recomendaciones">
     <div class="section-heading reveal">
       <div><p class="eyebrow">03 / ¿Para quién es?</p><h2>Casos de<br/><em>uso.</em></h2></div>
-      <p class="section-note">Perfiles de usuario a los que les puede servir monOS.</p>
+      <p class="section-note">Mercado objetivo: estudiantes de informática y desarrolladores que quieren un sistema listo para programar sin configurar nada.</p>
     </div>
     <div class="recommendation-grid" id="recommendation-grid"></div>
   </section>
@@ -106,11 +107,26 @@
       <p>Graba la ISO en una USB, arranca el sistema en vivo para probarlo y, si te gusta, instálalo desde el escritorio con el instalador gráfico.</p>
     </div>
     <div class="store-grid">
-      <article class="store-card reveal"><span class="store-number">01</span><h3>Descargar ISO</h3><p>Imagen en vivo con instalador (x86_64, ~5 GB). Arranca en UEFI y BIOS.</p><div><a href="https://drive.google.com/drive/folders/1nUSszLPcizV07Xjbe--AbGI46P8qUbDi?usp=sharing" target="_blank" rel="noopener">Descargar ↗</a></div></article>
+      <article class="store-card reveal"><span class="store-number">01</span><h3>Descargar ISO</h3><p>Imagen en vivo con instalador (x86_64, ~5 GB). Arranca en UEFI y BIOS.</p><div><a href="https://drive.google.com/uc?export=download&amp;id=1jI_J5dfLlMX_wgDelsLx_jNEyQbQlzbg" target="_blank" rel="noopener">Descargar ISO ↗</a><a href="https://drive.google.com/drive/folders/1nUSszLPcizV07Xjbe--AbGI46P8qUbDi?usp=sharing" target="_blank" rel="noopener">Carpeta en Drive ↗</a></div></article>
       <article class="store-card reveal reveal-delay"><span class="store-number">02</span><h3>Repositorio</h3><p>Código fuente, scripts de build, lista de paquetes y documentación.</p><div><a href="https://github.com/FreidhYMorales/monOS" target="_blank" rel="noopener">Ver repositorio ↗</a></div></article>
       <article class="store-card reveal"><span class="store-number">03</span><h3>Comunidad</h3><p>Dudas, reportes de errores y seguimiento del desarrollo.</p><div><a href="https://github.com/FreidhYMorales/monOS/issues" target="_blank" rel="noopener">Abrir un issue ↗</a></div></article>
     </div>
     <p class="source-note">Nota: la ISO está en Google Drive. Como pesa más de 100 MB, Drive avisa que no puede analizarla en busca de virus: elige "Descargar de todos modos". Grábala en una USB con Ventoy, balenaEtcher o <code>dd</code>.</p>
+  </section>
+
+  <section class="software-section section-shell" id="requisitos">
+    <div class="section-heading reveal">
+      <div><p class="eyebrow">04.1 / Antes de instalar</p><h2>Requisitos<br/><em>del sistema.</em></h2></div>
+      <p class="section-note">El instalador verifica el mínimo de disco y memoria antes de continuar.</p>
+    </div>
+    <div class="software-grid">
+      <article class="software-card reveal"><span>Procesador</span><h4>x86_64 (64 bits)</h4><p>Intel o AMD de 64 bits. Recomendado: 4 núcleos o más.</p></article>
+      <article class="software-card reveal"><span>Memoria</span><h4>4 GB de RAM</h4><p>Recomendado: 8 GB o más para el escritorio, el navegador y contenedores.</p></article>
+      <article class="software-card reveal"><span>Almacenamiento</span><h4>20 GB de disco</h4><p>Recomendado: 40 GB en SSD para paquetes opcionales y snapshots de Btrfs.</p></article>
+      <article class="software-card reveal"><span>Arranque</span><h4>UEFI o BIOS</h4><p>Secure Boot desactivado. Instala GRUB en ambos modos.</p></article>
+      <article class="software-card reveal"><span>Medio de instalación</span><h4>USB de 8 GB</h4><p>La ISO pesa unos 5.2 GB.</p></article>
+      <article class="software-card reveal"><span>Gráficos e internet</span><h4>GPU con Wayland</h4><p>Intel, AMD o NVIDIA (driver abierto incluido). Internet opcional, solo para el software extra del instalador.</p></article>
+    </div>
   </section>
 
   <section class="featured-section section-shell">
