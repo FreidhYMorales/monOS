@@ -1,6 +1,7 @@
 const DATA = {
   categories: [
-    { id:"desktop", label:"UI", name:"Escritorio", desc:"KDE Plasma, barra, dock y fondos" },
+    { id:"install", label:"ISO", name:"Instalación", desc:"Live USB e instalador gráfico" },
+    { id:"desktop", label:"UI", name:"Escritorio", desc:"KDE Plasma, login, tema claro y tiling" },
     { id:"terminal", label:"SH", name:"Terminal", desc:"kitty, zsh y Yazi" },
     { id:"devtools", label:"DEV", name:"Herramientas de desarrollo", desc:"Code - OSS y Neovim" },
     { id:"pkg", label:"PKG", name:"Gestor de paquetes", desc:"pacman y Discover" },
@@ -8,8 +9,30 @@ const DATA = {
     { id:"perf", label:"PERF", name:"Rendimiento", desc:"Barra y memoria" }
   ],
   components: [
+    { id:"install", name:"Instalación", flag:"Con video",
+      products:[
+        { video:"media/instalacion.mp4", poster:"media/instalacion-poster.webp", alt:"Video de la instalación de monOS con Calamares", brand:"Video · Calamares", name:"Instalación completa",
+          desc:"Desde el escritorio en vivo: idioma, teclado, particiones, software opcional y usuario, hasta copiar el sistema al disco.",
+          specs:{Instalador:"Calamares", Duración:"~5 min"} },
+        { img:"images/instalador-paquetes.webp", alt:"Página de software opcional del instalador con 17 grupos", brand:"Captura · Instalador", name:"Software opcional por área",
+          desc:"17 grupos que se descargan durante la instalación: IA, móvil, ciencia de datos, embebidos, juegos, DevOps, bases de datos y más.",
+          specs:{Grupos:"17", "Por defecto":"IA"} },
+        { img:"images/instalador-final.webp", alt:"Pantalla final del instalador: All done", brand:"Captura · Instalador", name:"Listo para reiniciar",
+          desc:"Al terminar, el instalador ofrece reiniciar directo al sistema instalado o seguir en la sesión en vivo.",
+          specs:{Arranque:"GRUB", Kernels:"linux + lts"} }
+      ],
+      reco:{title:"Pruébalo antes de instalar", note:"La misma ISO arranca en vivo y se instala desde el escritorio en unos minutos."} },
     { id:"desktop", name:"Escritorio", flag:"Con capturas",
       products:[
+        { img:"images/sddm.webp", alt:"Pantalla de inicio de sesión de monOS", brand:"Captura · SDDM", name:"Inicio de sesión",
+          desc:"Pantalla de login propia con reloj, sesión Plasma (Wayland), distribución de teclado y botones de energía.",
+          specs:{Gestor:"SDDM", Sesión:"Wayland"} },
+        { img:"images/tema-claro.webp", alt:"Escritorio de monOS con el tema claro", brand:"Captura · Tema claro", name:"monOS Light",
+          desc:"El mismo escritorio en versión clara: colores, íconos e islas de la barra se adaptan al tema.",
+          specs:{Tema:"Claro", "Tema global":"monOS Light"} },
+        { video:"media/tiling.mp4", poster:"media/tiling-poster.webp", alt:"Video del modo tiling acomodando ventanas", brand:"Video · Krohnkite", name:"Ventanas en mosaico",
+          desc:"Con Meta+Shift+T las ventanas se acomodan solas en mosaico; aquí con btop, fastfetch y yazi.",
+          specs:{Atajo:"Meta+Shift+T", Script:"Krohnkite"} },
         { img:"images/escritorio.webp", alt:"Escritorio de monOS con barra superior, dock inferior y la mascota al centro", brand:"Captura · KDE Plasma", name:"Escritorio con barra y dock",
           desc:"Barra superior con espacios de trabajo, reloj y estado del sistema (CPU, memoria, sonido, Bluetooth y red), y un dock inferior con lanzador, terminal, archivos, navegador y papelera.",
           specs:{Barra:"Superior", Dock:"Inferior"} },
@@ -68,7 +91,7 @@ const DATA = {
         { brand:"Captura pendiente · Btrfs", name:"Snapshots para volver atrás",
           desc:"Snapper toma un snapshot antes de cada actualización; si algo se rompe, se arranca un snapshot anterior desde GRUB y se restaura con Btrfs Assistant.",
           specs:{Sistema:"Btrfs + Snapper", Arranque:"GRUB"} },
-        { brand:"Captura pendiente · Instalador", name:"Disco cifrado opcional",
+        { img:"images/instalador-particiones.webp", alt:"Página de particiones del instalador con la opción Encrypt system", brand:"Captura · Instalador", name:"Disco cifrado opcional",
           desc:"El instalador permite cifrar todo el disco con LUKS: sin la contraseña, los datos no se pueden leer aunque se saque el disco.",
           specs:{Cifrado:"LUKS", Opcional:"Sí"} }
       ],
@@ -151,10 +174,12 @@ function renderComponents(){
       comp.products.some(p => (p.name + ' ' + p.desc).toLowerCase().includes(term));
     if(!matches) return '';
     shown++;
-    const pending = comp.products.filter(p => !p.img).length;
+    const pending = comp.products.filter(p => !p.img && !p.video).length;
     const products = comp.products.map(p => `
-      <article class="product-card${p.img ? ' has-shot' : ''}">
-        <div class="product-image">${p.img
+      <article class="product-card${p.video ? ' has-video' : p.img ? ' has-shot' : ''}">
+        <div class="product-image">${p.video
+          ? `<video controls preload="none" playsinline poster="${p.poster}" aria-label="${p.alt || p.name}"><source src="${p.video}" type="video/mp4" /></video>`
+          : p.img
           ? `<img src="${p.img}" alt="${p.alt || p.name}" loading="lazy" />`
           : '<span>📷</span>'}</div>
         <div class="product-content">
@@ -187,9 +212,9 @@ function renderComponents(){
   }).join('');
   list.innerHTML = html || '<p class="empty-state">No encontramos módulos con ese criterio.</p>';
   document.getElementById('count').textContent = `Mostrando ${shown} de ${DATA.components.length} módulos`;
-  const pendingModules = DATA.components.filter(c => c.products.some(p => !p.img)).length;
+  const pendingModules = DATA.components.filter(c => c.products.some(p => !p.img && !p.video)).length;
   const note = document.querySelector('.catalog-status span:last-child');
-  if(note) note.textContent = pendingModules ? `${pendingModules} módulos con capturas pendientes` : 'Todas las capturas agregadas';
+  if(note) note.textContent = pendingModules ? `${pendingModules} ${pendingModules === 1 ? "módulo" : "módulos"} con capturas pendientes` : 'Todas las capturas agregadas';
 }
 
 function renderRecommendations(){
