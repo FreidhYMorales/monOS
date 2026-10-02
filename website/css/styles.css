@@ -76,6 +76,11 @@ body:before {
 .hero-cross { position: absolute; color: var(--cyan); font-size: 25px; font-weight: 200; }
 .cross-a { top: 10%; left: 10%; } .cross-b { bottom: 20%; right: 0; }
 .index-section { padding-top: 106px; padding-bottom: 100px; }
+.video-section { padding-top: 90px; }
+.video-frame { margin-top: 50px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(120,170,255,.35); background: #000; box-shadow: 0 25px 80px rgba(0,0,0,.35); }
+.video-frame video { display: block; width: 100%; height: auto; aspect-ratio: 16/10; }
+.catalog-link { margin: 28px 0 0; }
+.footer-meta a { color: inherit; }
 .section-heading, .catalog-top { display: flex; justify-content: space-between; align-items: end; gap: 40px; }
 .section-heading h2, .catalog-top h2 { font-size: clamp(3rem, 6vw, 6.5rem); }
 .section-note { color: var(--muted); max-width: 240px; font-size: 13px; margin: 0 0 5px; }
