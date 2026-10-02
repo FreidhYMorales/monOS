@@ -1,10 +1,23 @@
 # monOS optional software groups (official Arch repositories only).
-# Every group is unselected by default and non-critical: a package that fails
-# to install is logged and skipped instead of aborting the installation.
+# Groups are downloaded during the installation, so they do not take space on
+# the ISO. Every group is non-critical: a package that fails to install is
+# logged and skipped instead of aborting the installation. Only "AI" is
+# selected by default.
 #
 # Not available in the official repositories (install later with yay):
-#   - android-studio (AUR)
+#   - android-studio, flutter, postman, bruno, mongodb, pgadmin4 (AUR)
 #   - redis (replaced in the official repositories by valkey, a drop-in fork)
+- name: "AI"
+  description: "AI coding agents (OpenCode, Gemini CLI, Codex), local models (Ollama) and the Zed editor"
+  selected: true
+  critical: false
+  packages:
+    - opencode
+    - gemini-cli
+    - openai-codex
+    - ollama
+    - zed
+
 - name: "IDEs"
   description: "JetBrains IDEs (community editions)"
   selected: false
@@ -13,8 +26,102 @@
     - intellij-idea-community-edition
     - pycharm-community-edition
 
+- name: "JVM and Android"
+  description: "Kotlin, Gradle, Maven, Scala (sbt), Clojure and the Android platform tools (adb, fastboot)"
+  selected: false
+  critical: false
+  packages:
+    - kotlin
+    - gradle
+    - maven
+    - sbt
+    - clojure
+    - leiningen
+    - android-tools
+
+- name: "Data science and ML"
+  description: "JupyterLab, NumPy, pandas, Matplotlib, scikit-learn, PyTorch (CPU), R and Julia"
+  selected: false
+  critical: false
+  packages:
+    - jupyterlab
+    - python-numpy
+    - python-pandas
+    - python-matplotlib
+    - python-scikit-learn
+    - python-pytorch
+    - r
+    - julia
+
+- name: "More languages"
+  description: "Zig, Lua, Elixir/Erlang, Haskell, OCaml, Nim, Crystal, Common Lisp, Fortran, Dart, .NET, PHP and Ruby"
+  selected: false
+  critical: false
+  packages:
+    - zig
+    - lua
+    - luarocks
+    - elixir
+    - erlang
+    - ghc
+    - cabal-install
+    - stack
+    - ocaml
+    - opam
+    - nim
+    - crystal
+    - sbcl
+    - gcc-fortran
+    - dart
+    - dotnet-sdk
+    - php
+    - composer
+    - ruby
+
+- name: "Embedded and IoT"
+  description: "Arduino CLI, PlatformIO, AVR and ARM Cortex-M toolchains, OpenOCD and a serial terminal"
+  selected: false
+  critical: false
+  packages:
+    - arduino-cli
+    - platformio-core
+    - avr-gcc
+    - arm-none-eabi-gcc
+    - arm-none-eabi-newlib
+    - openocd
+    - picocom
+
+- name: "Game development and 3D"
+  description: "Godot, Blender, SDL3 and raylib"
+  selected: false
+  critical: false
+  packages:
+    - godot
+    - blender
+    - sdl3
+    - raylib
+
+- name: "DevOps and cloud"
+  description: "OpenTofu, Terraform, Ansible, Kubernetes (kubectl, minikube, Helm, k9s), AWS and Azure CLIs, GitHub Actions runner (act), Trivy and Protocol Buffers"
+  selected: false
+  critical: false
+  packages:
+    - opentofu
+    - terraform
+    - ansible
+    - kubectl
+    - minikube
+    - helm
+    - k9s
+    - aws-cli-v2
+    - azure-cli
+    - act
+    - trivy
+    - protobuf
+    - buf
+
 - name: "Databases"
-  description: "Database servers and a universal database client"
+  description: "Database servers and database clients"
   selected: false
   critical: false
   packages:
@@ -22,6 +129,15 @@
     - mariadb
     - valkey
     - dbeaver
+    - mysql-workbench
+
+- name: "Networking"
+  description: "Wireshark and mitmproxy (HTTP/HTTPS inspection)"
+  selected: false
+  critical: false
+  packages:
+    - wireshark-qt
+    - mitmproxy
 
 - name: "Virtualization"
   description: "QEMU/KVM with libvirt and virt-manager"
@@ -35,23 +151,30 @@
     - edk2-ovmf
     - swtpm
 
+- name: "Documentation"
+  description: "Pandoc, Typst, mdBook, Graphviz and PlantUML"
+  selected: false
+  critical: false
+  packages:
+    - pandoc-cli
+    - typst
+    - mdbook
+    - graphviz
+    - plantuml
+
+- name: "Design and media"
+  description: "Inkscape, Krita, GIMP and OBS Studio"
+  selected: false
+  critical: false
+  packages:
+    - inkscape
+    - krita
+    - gimp
+    - obs-studio
+
 - name: "Office"
   description: "LibreOffice (latest feature release)"
   selected: false
   critical: false
   packages:
     - libreoffice-fresh
-
-- name: "Extras"
-  description: ".NET, PHP, Ruby, Kubernetes tools, OBS Studio and GIMP"
-  selected: false
-  critical: false
-  packages:
-    - dotnet-sdk
-    - php
-    - composer
-    - ruby
-    - kubectl
-    - minikube
-    - obs-studio
-    - gimp

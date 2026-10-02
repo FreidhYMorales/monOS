@@ -295,10 +295,8 @@ sqlite
 sqlitebrowser
 httpie
 pre-commit
-# AI coding agents for the terminal (bring your own account or API key)
-opencode
-gemini-cli
-openai-codex
+# AI coding agents (OpenCode, Gemini CLI, Codex), Ollama and Zed are not on
+# the ISO: they are the installer's "AI" netinstall group (selected by default).
 
 # --- CLI tools ---
 zsh
@@ -358,12 +356,10 @@ firefox
 obsidian
 
 # --- Optional AI tools (installer page "AI tools") ---
-# Shipped on the ISO and kept on the target only when selected; see
+# AUR tools, so netinstall cannot download them: shipped on the ISO and kept
+# on the target only when selected; see
 # /etc/calamares/modules/packagechooser_ai.conf and scripts/monos-ai-tools.sh.
-# claude-code, antigravity-ide and herdr-bin come from the local [monos]
-# repository (AUR packages built by aur/build.sh).
-ollama
-zed
+# They come from the local [monos] repository (built by aur/build.sh).
 claude-code
 antigravity-ide
 herdr-bin

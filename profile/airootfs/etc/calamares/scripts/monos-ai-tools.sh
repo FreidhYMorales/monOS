@@ -22,8 +22,6 @@ declare -A packages=(
     [claude]="claude-code"
     [antigravity]="antigravity-ide"
     [herdr]="herdr-bin"
-    [ollama]="ollama"
-    [zed]="zed"
 )
 
 IFS=',' read -r -a selected <<<"${SELECTION#sel:}"
