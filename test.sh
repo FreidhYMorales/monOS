@@ -4,6 +4,8 @@
 # Usage: ./test.sh [--uefi|--bios]             # live ISO only (archiso's run_archiso)
 #        ./test.sh --install [--uefi|--bios]   # live ISO + virtual disk, to test the installer
 #        ./test.sh --disk [--uefi|--bios]      # boot the installed virtual disk (no ISO)
+#        ./test.sh --install --target=/dev/sdX # install onto a real removable USB drive
+#        ./test.sh --disk --target=/dev/sdX    # boot that USB drive in QEMU
 #
 # Firmware defaults to UEFI. A system installed with --bios must be booted
 # with --disk --bios (and a UEFI install with --disk / --disk --uefi).
@@ -11,6 +13,14 @@
 # Virtual disk: /var/tmp/monos-disk.qcow2 (40G, created on first --install).
 # UEFI variables: /var/tmp/monos-OVMF_VARS.fd (writable copy, keeps the
 # "monOS" boot entry created by the installer). Delete both to start over.
+#
+# --target=/dev/sdX replaces the virtual disk with a whole removable USB drive
+# (WIPED by the installer). It must be a USB, unmounted, whole disk. The
+# installer also writes GRUB to the removable-media path (EFI/BOOT/BOOTX64.EFI),
+# so the drive boots on real UEFI machines. Note that monos-hardware-cleanup.sh
+# runs inside the VM: it removes the NVIDIA driver (no NVIDIA GPU in QEMU) and
+# keeps the QEMU guest tools. Write access is granted with a temporary ACL
+# (sudo setfacl), which is dropped when the drive is unplugged.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,9 +31,10 @@ DISK_SIZE="40G"
 OVMF_CODE="/usr/share/edk2/x64/OVMF_CODE.4m.fd"
 OVMF_VARS_TEMPLATE="/usr/share/edk2/x64/OVMF_VARS.4m.fd"
 OVMF_VARS="/var/tmp/monos-OVMF_VARS.fd"
+target=""
 
 usage() {
-    echo "Usage: $0 [--install|--disk] [--uefi|--bios]"
+    echo "Usage: $0 [--install|--disk] [--uefi|--bios] [--target=/dev/sdX]"
 }
 
 mode="live"
@@ -34,6 +45,7 @@ for arg in "$@"; do
         --uefi) firmware="uefi" ;;
         --install) mode="install" ;;
         --disk) mode="disk" ;;
+        --target=*) target="${arg#--target=}" ;;
         -h|--help)
             usage
             exit 0
@@ -88,6 +100,35 @@ if [[ "${mode}" == "live" ]]; then
 fi
 
 # --- Install / disk modes: plain qemu-system-x86_64 --------------------------
+if [[ -n "${target}" ]]; then
+    if [[ "${mode}" == "live" ]]; then
+        echo "error: --target needs --install or --disk" >&2
+        exit 1
+    fi
+    if [[ ! -b "${target}" ]] || [[ "$(lsblk -dno TYPE -- "${target}")" != "disk" ]]; then
+        echo "error: '${target}' is not a whole disk (use /dev/sdX, not a partition)" >&2
+        exit 1
+    fi
+    if [[ "$(lsblk -dno TRAN -- "${target}")" != "usb" ]]; then
+        echo "error: '${target}' is not a USB drive; refusing to use it" >&2
+        exit 1
+    fi
+    if lsblk -no MOUNTPOINTS -- "${target}" | rg -q '\S'; then
+        echo "error: '${target}' has mounted partitions; unmount them first" >&2
+        exit 1
+    fi
+    lsblk -o NAME,SIZE,TRAN,MODEL -- "${target}"
+    if [[ ! -w "${target}" ]]; then
+        echo ":: Granting ${USER} write access to '${target}' (sudo)"
+        sudo setfacl -m "u:${USER}:rw" -- "${target}"
+    fi
+    DISK="${target}"
+    OVMF_VARS="/var/tmp/monos-OVMF_VARS-target.fd"
+    disk_drive="file=${DISK},if=virtio,format=raw,cache=none,aio=native,discard=unmap"
+else
+    disk_drive="file=${DISK},if=virtio,format=qcow2,cache=writeback,discard=unmap"
+fi
+
 if [[ ! -r /dev/kvm ]]; then
     echo "error: /dev/kvm is not available (enable virtualization / load kvm modules)" >&2
     exit 1
@@ -105,7 +146,7 @@ qemu_args=(
     -netdev user,id=net0
     -device intel-hda -device hda-output
     -device qemu-xhci -device usb-tablet
-    -drive "file=${DISK},if=virtio,format=qcow2,cache=writeback,discard=unmap"
+    -drive "${disk_drive}"
 )
 
 if [[ "${firmware}" == "uefi" ]]; then
@@ -125,7 +166,7 @@ if [[ "${firmware}" == "uefi" ]]; then
 fi
 
 if [[ "${mode}" == "install" ]]; then
-    if [[ ! -f "${DISK}" ]]; then
+    if [[ -z "${target}" && ! -f "${DISK}" ]]; then
         echo ":: Creating virtual disk '${DISK}' (${DISK_SIZE})"
         qemu-img create -f qcow2 "${DISK}" "${DISK_SIZE}"
     fi
@@ -137,7 +178,7 @@ if [[ "${mode}" == "install" ]]; then
         -device ide-cd,drive=cd0,bootindex=0
     )
 else
-    if [[ ! -f "${DISK}" ]]; then
+    if [[ -z "${target}" && ! -f "${DISK}" ]]; then
         echo "error: '${DISK}' does not exist. Install monOS first: ./test.sh --install" >&2
         exit 1
     fi
