@@ -242,3 +242,10 @@ body:before {
 .desktop-nav a { white-space: nowrap; }
 .theme-switch .switch-label { white-space: nowrap; }
 @media (max-width: 1400px) { .edition-pill { display: none; } }
+
+/* Launch video page */
+.launch-section { padding-top: 70px; padding-bottom: 110px; }
+.launch-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+.launch-credit { margin-top: 26px; color: var(--muted); font-size: 12px; }
+.launch-credit a { color: var(--text); }
+.launch-section .video-frame video { aspect-ratio: 16 / 9; }
