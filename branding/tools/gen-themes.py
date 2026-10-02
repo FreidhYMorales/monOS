@@ -1947,28 +1947,33 @@ clock.writeConfig("fontSize", 10);
 
 bar.addWidget("org.kde.plasma.panelspacer");
 
-// Island 3: CPU and memory as labelled text ("CPU 3%  RAM 21%"), the tray
-// and a session button. The plain org.kde.plasma.systemmonitor applet loads
-// no preset, so this face and these sensors are kept (libksysguard
-// SensorFaceController: [Appearance] chartFace/title, [Sensors] JSON lists,
-// [SensorLabels], [SensorColors]).
-var monitor = bar.addWidget("org.kde.plasma.systemmonitor");
-monitor.currentConfigGroup = ["Appearance"];
-monitor.writeConfig("chartFace", "org.kde.ksysguard.textonly");
-monitor.writeConfig("title", "System");
-monitor.currentConfigGroup = ["Sensors"];
-monitor.writeConfig("highPrioritySensorIds", '["cpu/all/usage","memory/physical/usedPercent"]');
-monitor.writeConfig("lowPrioritySensorIds", "[]");
-monitor.writeConfig("totalSensors", "[]");
+// Island 3: CPU and memory as glyph-labelled text, the tray and a session
+// button. The plain org.kde.plasma.systemmonitor applet loads no preset, so
+// this face and these sensors are kept (libksysguard SensorFaceController:
+// [Appearance] chartFace/title, [Sensors] JSON lists, [SensorLabels],
+// [SensorColors]).
+// One applet per sensor: the textonly face stacks its sensors in rows when
+// the bar fits two lines (HiDPI), and then sizes the applet to the first
+// sensor only, so a second, wider label is elided to "…".
 // Labels are single Nerd Font glyphs (nf-oct-cpu, nf-md-memory): the panel
-// gives this applet only its minimum width, where text labels such as "CPU"
+// gives the applet only its minimum width, where text labels such as "CPU"
 // get elided to "C…", while one glyph fits.
-monitor.currentConfigGroup = ["SensorLabels"];
-monitor.writeConfig("cpu/all/usage", "\\uf4bc");
-monitor.writeConfig("memory/physical/usedPercent", "\\u{{f035b}}");
-monitor.currentConfigGroup = ["SensorColors"];
-monitor.writeConfig("cpu/all/usage", "{kde_rgb(a['blue'])}");
-monitor.writeConfig("memory/physical/usedPercent", "{kde_rgb(a['magenta'])}");
+function addSensor(id, title, label, color) {{
+    var monitor = bar.addWidget("org.kde.plasma.systemmonitor");
+    monitor.currentConfigGroup = ["Appearance"];
+    monitor.writeConfig("chartFace", "org.kde.ksysguard.textonly");
+    monitor.writeConfig("title", title);
+    monitor.currentConfigGroup = ["Sensors"];
+    monitor.writeConfig("highPrioritySensorIds", JSON.stringify([id]));
+    monitor.writeConfig("lowPrioritySensorIds", "[]");
+    monitor.writeConfig("totalSensors", "[]");
+    monitor.currentConfigGroup = ["SensorLabels"];
+    monitor.writeConfig(id, label);
+    monitor.currentConfigGroup = ["SensorColors"];
+    monitor.writeConfig(id, color);
+}}
+addSensor("cpu/all/usage", "CPU", "\\uf4bc", "{kde_rgb(a['blue'])}");
+addSensor("memory/physical/usedPercent", "Memory", "\\u{{f035b}}", "{kde_rgb(a['magenta'])}");
 
 bar.addWidget("org.kde.plasma.systemtray");
 
