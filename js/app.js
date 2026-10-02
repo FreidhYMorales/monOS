@@ -4,7 +4,7 @@ const DATA = {
     { id:"terminal", label:"SH", name:"Terminal", desc:"kitty, zsh y Yazi" },
     { id:"devtools", label:"DEV", name:"Herramientas de desarrollo", desc:"Code - OSS y Neovim" },
     { id:"pkg", label:"PKG", name:"Gestor de paquetes", desc:"pacman y Discover" },
-    { id:"sec", label:"SEC", name:"Seguridad", desc:"Pendiente" },
+    { id:"sec", label:"SEC", name:"Seguridad", desc:"Firewall, snapshots y cifrado" },
     { id:"perf", label:"PERF", name:"Rendimiento", desc:"Barra y memoria" }
   ],
   components: [
@@ -60,13 +60,19 @@ const DATA = {
           specs:{Tienda:"Discover", Sistema:"Btrfs"} }
       ],
       reco:{title:"pacman + Discover", note:"Gestor en terminal y tienda gráfica para instalar software."} },
-    { id:"sec", name:"Seguridad", flag:"Esperando contenido",
+    { id:"sec", name:"Seguridad", flag:"Capturas pendientes",
       products:[
-        { brand:"Captura pendiente", name:"Nombre de la función", desc:"Breve descripción de la función de seguridad.", specs:{Estado:"Por definir",Prioridad:"Por definir"} },
-        { brand:"Captura pendiente", name:"Nombre de la función", desc:"Breve descripción de la función de seguridad.", specs:{Estado:"Por definir",Prioridad:"Por definir"} }
+        { brand:"Captura pendiente · Firewall", name:"Firewall activo desde el inicio",
+          desc:"ufw bloquea las conexiones entrantes y permite las salientes; se administra desde la Configuración del sistema. Solo se abren los puertos de KDE Connect.",
+          specs:{Firewall:"ufw", Entrante:"Bloqueado"} },
+        { brand:"Captura pendiente · Btrfs", name:"Snapshots para volver atrás",
+          desc:"Snapper toma un snapshot antes de cada actualización; si algo se rompe, se arranca un snapshot anterior desde GRUB y se restaura con Btrfs Assistant.",
+          specs:{Sistema:"Btrfs + Snapper", Arranque:"GRUB"} },
+        { brand:"Captura pendiente · Instalador", name:"Disco cifrado opcional",
+          desc:"El instalador permite cifrar todo el disco con LUKS: sin la contraseña, los datos no se pueden leer aunque se saque el disco.",
+          specs:{Cifrado:"LUKS", Opcional:"Sí"} }
       ],
-      compare:[ {label:"Por definir", a:0}, {label:"Por definir", a:0} ],
-      reco:{title:"Por definir", note:"Pendiente de agregar el punto clave de este módulo."} },
+      reco:{title:"Seguro por defecto", note:"Firewall activo, snapshots automáticos y cifrado de disco a un clic en el instalador."} },
     { id:"perf", name:"Rendimiento", flag:"Con capturas",
       products:[
         { img:"images/perf-barra.webp", alt:"Barra superior de monOS con indicadores de CPU y memoria", brand:"Captura · Barra superior", name:"Monitor en la barra superior",
@@ -79,25 +85,28 @@ const DATA = {
       reco:{title:"Ligero en reposo", note:"9% de memoria en uso con el escritorio recién iniciado."} }
   ],
   recommendations: [
-    { tag:"Pendiente", title:"Pendiente", note:"Agregaremos aquí un caso de uso real mañana." },
-    { tag:"Pendiente", title:"Pendiente", note:"Agregaremos aquí un caso de uso real mañana." },
-    { tag:"Pendiente", title:"Pendiente", note:"Agregaremos aquí un caso de uso real mañana." }
+    { tag:"Estudiantes", title:"Aprender a programar sin pelear con el sistema", note:"Compiladores, editores y terminal configurados desde el primer arranque: C, C++, Python, Java, Go, Rust y JavaScript listos para usar en clase." },
+    { tag:"Desarrollo web y backend", title:"De la idea al contenedor", note:"Node.js, Bun, Deno, Python con uv, Docker, Podman y distrobox, más clientes de API y bases de datos opcionales en el instalador." },
+    { tag:"Ciencia de datos, IA y más", title:"Un abanico para cada área", note:"Agentes de IA, JupyterLab, PyTorch, Android y Flutter, embebidos con Arduino, juegos con Godot y DevOps con Kubernetes: se eligen al instalar." }
   ],
   featured: [
-    { tag:"Destacado", mark:"01", title:"Identidad propia", desc:"Logo, mascota y fondos de pantalla en versión oscura y clara." },
-    { tag:"Destacado", mark:"02", title:"Arch + KDE Plasma 6", desc:"Base Arch con pacman y un escritorio KDE Plasma con barra y dock." },
-    { tag:"Destacado", mark:"03", title:"Listo para programar", desc:"Terminal kitty con zsh, Code - OSS, Neovim y CMake desde el primer arranque." }
+    { tag:"Destacado", mark:"01", title:"Identidad propia", desc:"Logo, mascota, temas oscuro y claro, y 11 fondos de pantalla; los mismos colores del arranque al editor." },
+    { tag:"Destacado", mark:"02", title:"Pruébalo e instálalo", desc:"Live USB con instalador gráfico, snapshots Btrfs para volver atrás y grupos de software opcionales por área." },
+    { tag:"Destacado", mark:"03", title:"Listo para programar", desc:"Lenguajes, servidores de lenguaje, contenedores y agentes de IA desde el primer arranque." }
   ],
   software: [
-    { tag:"Terminal", title:"kitty", desc:"Terminal de monOS, con colores y prompt propios." },
-    { tag:"Editor", title:"Code - OSS", desc:"Editor gráfico para programar." },
-    { tag:"Editor", title:"Neovim", desc:"Editor en terminal, visto abriendo el ~/.zshrc de monOS." },
-    { tag:"Archivos", title:"Dolphin", desc:"Explorador de archivos gráfico de KDE." },
-    { tag:"Archivos", title:"Yazi", desc:"Explorador de archivos en la terminal, controlado con el teclado." },
+    { tag:"Terminal", title:"kitty + zsh", desc:"Terminal de monOS con Starship, autosugerencias, zellij y tmux." },
+    { tag:"Editor", title:"Code - OSS", desc:"Editor gráfico con el tema de monOS." },
+    { tag:"Editor", title:"Neovim y Helix", desc:"Editores en terminal, con servidores de lenguaje para Python, Rust, Go, TypeScript y más." },
+    { tag:"Lenguajes", title:"C/C++, Python, Java, Go, Rust", desc:"GCC, Clang, CMake, OpenJDK 21, rustup y uv incluidos." },
+    { tag:"JavaScript", title:"Node.js, Bun y Deno", desc:"Con npm y pnpm para cualquier proyecto web." },
+    { tag:"Contenedores", title:"Docker, Podman, distrobox", desc:"Contenedores listos y otras distros dentro de monOS." },
+    { tag:"IA", title:"OpenCode, Gemini CLI, Codex", desc:"Agentes de IA en la terminal; Claude Code y Antigravity como opción." },
+    { tag:"Git", title:"Git, GitHub CLI, lazygit", desc:"Control de versiones con interfaz en terminal y diffs con delta." },
+    { tag:"Archivos", title:"Dolphin y Yazi", desc:"Explorador gráfico con terminal integrada y explorador en terminal." },
     { tag:"Internet", title:"Firefox", desc:"Navegador web incluido en los favoritos." },
-    { tag:"Desarrollo", title:"CMake", desc:"Herramienta para compilar proyectos en C y C++." },
-    { tag:"Sistema", title:"btop++", desc:"Monitor de recursos: CPU, memoria, procesos y red." },
-    { tag:"Sistema", title:"Btrfs Assistant", desc:"Administración del sistema de archivos Btrfs." }
+    { tag:"Notas", title:"Obsidian", desc:"Notas en Markdown con el tema de monOS aplicado a cada bóveda." },
+    { tag:"Sistema", title:"btop y Btrfs Assistant", desc:"Monitor de recursos y snapshots del sistema de archivos." }
   ]
 };
 

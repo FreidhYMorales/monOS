@@ -6,6 +6,15 @@
 <meta name="description" content="Presentación de monOS, un sistema operativo basado en Linux orientado a programación." />
 <title>monOS — Presentación del proyecto</title>
 <link rel="icon" type="image/png" href="images/logo.png" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="monOS" />
+<meta property="og:title" content="monOS — El sistema para programar" />
+<meta property="og:description" content="Distribución Linux basada en Arch y KDE Plasma, lista para programar desde el primer arranque." />
+<meta property="og:url" content="https://freidhymorales.github.io/monOS/" />
+<meta property="og:image" content="https://freidhymorales.github.io/monOS/images/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -16,7 +25,7 @@
 <header class="site-header">
   <a class="brand" href="#inicio"><span class="brand-mark"><img src="images/logo.png" alt="Logo de monOS" /></span><span>mon<span class="brand-accent">OS</span></span></a>
   <nav class="desktop-nav">
-    <a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Instalación</a><a href="#equipo">Equipo</a>
+    <a href="#video">Video</a><a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Instalación</a><a href="#equipo">Equipo</a>
   </nav>
   <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="mobile-nav">Menú <span>☰</span></button>
   <div class="edition-pill"><span class="status-dot"></span> Basado en Linux · 2026</div>
@@ -25,7 +34,7 @@
   </button>
 </header>
 <nav class="mobile-nav" id="mobile-nav">
-  <a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Instalación</a><a href="#equipo">Equipo</a>
+  <a href="#video">Video</a><a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Instalación</a><a href="#equipo">Equipo</a>
 </nav>
 
 <main id="inicio">
@@ -36,7 +45,7 @@
       <p class="hero-lede">monOS es nuestra propia distribución de Linux, armada para programar: entorno ligero, herramientas listas desde el primer arranque y una terminal que no estorba.</p>
       <div class="hero-actions">
         <a class="button button-primary" href="#caracteristicas">Ver características <span>↗</span></a>
-        <a class="button button-quiet" href="#capturas">Ver capturas</a>
+        <a class="button button-quiet" href="#video">Ver video</a>
       </div>
       <div class="hero-meta"><span><strong>Arch</strong> base</span><span><strong>Dev</strong> enfoque</span><span><strong>2026</strong> proyecto</span></div>
     </div>
@@ -47,6 +56,19 @@
       <div class="floating-tag tag-cpu">Base <b>Arch Linux</b></div>
       <div class="floating-tag tag-ssd">Escritorio <b>KDE Plasma</b></div>
       <div class="hero-cross cross-a">+</div><div class="hero-cross cross-b">+</div>
+    </div>
+  </section>
+
+  <section class="video-section section-shell" id="video">
+    <div class="section-heading reveal">
+      <div><p class="eyebrow">00 / Demo</p><h2>monOS,<br/><em>en video.</em></h2></div>
+      <p class="section-note">Un recorrido por el escritorio, la terminal y las herramientas, grabado en una instalación real.</p>
+    </div>
+    <div class="video-frame reveal">
+      <video controls preload="none" playsinline poster="media/showcase-poster.webp">
+        <source src="media/showcase.mp4" type="video/mp4" />
+        Tu navegador no puede reproducir el video. <a href="media/showcase.mp4">Descárgalo aquí</a>.
+      </video>
     </div>
   </section>
 
@@ -81,14 +103,14 @@
   <section class="guatemala-section section-shell" id="instalacion">
     <div class="guatemala-intro reveal">
       <p class="eyebrow">04 / Consíguelo</p><h2>Descarga<br/>e <em>instala.</em></h2>
-      <p>Aquí irán los enlaces reales de descarga, repositorio y documentación cuando estén listos.</p>
+      <p>Graba la ISO en una USB, arranca el sistema en vivo para probarlo y, si te gusta, instálalo desde el escritorio con el instalador gráfico.</p>
     </div>
     <div class="store-grid">
-      <article class="store-card reveal"><span class="store-number">01</span><h3>Sitio oficial</h3><p>Página del proyecto con la ISO y guía de instalación.</p><div><span class="pending-badge">Próximamente</span><a href="#">Visitar sitio ↗</a></div></article>
-      <article class="store-card reveal reveal-delay"><span class="store-number">02</span><h3>Repositorio</h3><p>Código fuente, scripts de build y lista de paquetes.</p><div><span class="pending-badge">Próximamente</span><a href="#">Ver repositorio ↗</a></div></article>
-      <article class="store-card reveal"><span class="store-number">03</span><h3>Comunidad</h3><p>Dudas, soporte y seguimiento del desarrollo.</p><div><span class="pending-badge">Próximamente</span><a href="#">Unirse ↗</a></div></article>
+      <article class="store-card reveal"><span class="store-number">01</span><h3>Descargar ISO</h3><p>Imagen en vivo con instalador (x86_64, ~5 GB). Arranca en UEFI y BIOS.</p><div><span class="pending-badge">Próximamente</span><a href="#">Descargar ↗</a></div></article>
+      <article class="store-card reveal reveal-delay"><span class="store-number">02</span><h3>Repositorio</h3><p>Código fuente, scripts de build, lista de paquetes y documentación.</p><div><a href="https://github.com/FreidhYMorales/monOS" target="_blank" rel="noopener">Ver repositorio ↗</a></div></article>
+      <article class="store-card reveal"><span class="store-number">03</span><h3>Comunidad</h3><p>Dudas, reportes de errores y seguimiento del desarrollo.</p><div><a href="https://github.com/FreidhYMorales/monOS/issues" target="_blank" rel="noopener">Abrir un issue ↗</a></div></article>
     </div>
-    <p class="source-note">Nota: los enlaces y la versión descargable se agregan en cuanto estén listos.</p>
+    <p class="source-note">Nota: el enlace de descarga de la ISO se agrega en cuanto esté publicada.</p>
   </section>
 
   <section class="featured-section section-shell">
@@ -102,9 +124,10 @@
   <section class="software-section section-shell" id="herramientas">
     <div class="section-heading reveal">
       <div><p class="eyebrow">06 / Lo que trae por dentro</p><h2>Herramientas<br/><em>incluidas.</em></h2></div>
-      <p class="section-note">El software que ya viene listo para programar apenas instalas monOS.</p>
+      <p class="section-note">Una muestra del software que viene listo apenas instalas monOS.</p>
     </div>
     <div class="software-grid" id="software-grid"></div>
+    <p class="catalog-link reveal"><a class="text-link" href="docs/monOS-catalogo.pdf" target="_blank" rel="noopener">Ver el catálogo completo de herramientas (PDF) <span>↗</span></a></p>
   </section>
 
   <section class="lesson-section section-shell">
@@ -132,7 +155,7 @@
 
 <footer class="site-footer">
   <div class="footer-brand"><a class="brand" href="#inicio"><span class="brand-mark"><img src="images/logo.png" alt="Logo de monOS" /></span><span>mon<span class="brand-accent">OS</span></span></a><p>Sistema Operativo basado en Linux, orientado a programación</p></div>
-  <div class="footer-meta"><span>Proyecto académico · 2026</span><span>Contenido pendiente de completar</span></div>
+  <div class="footer-meta"><span>Proyecto académico · 2026</span><a href="https://github.com/FreidhYMorales/monOS" target="_blank" rel="noopener">GitHub ↗</a></div>
 </footer>
 <button class="to-top" id="to-top" aria-label="Volver al inicio">↑</button>
 
