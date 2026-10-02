@@ -91,8 +91,17 @@ echo ":: Icons and logos"
 icons="${AIROOTFS}/usr/share/icons/hicolor/scalable/apps"
 install -d -- "${icons}" "${AIROOTFS}/usr/share/monos/logo" "${AIROOTFS}/usr/share/monos/fastfetch"
 install -m 0644 -- "${LOGO}/monos-icon.svg" "${icons}/monos.svg"
-install -m 0644 -- "${LOGO}/monos-icon-small.svg" "${icons}/monos-small.svg"
-install -m 0644 -- "${LOGO}/monos-launcher.svg" "${icons}/monos-launcher.svg"
+# monos-small and monos-launcher crop the mascot with <clipPath>, which Qt's
+# SVG renderer (SVG Tiny, used by Plasma for icons) ignores: it would draw the
+# whole mascot spilling out of the badge. Ship them pre-rendered as PNGs in
+# every standard hicolor size instead of as scalable SVGs.
+rm -f -- "${icons}/monos-small.svg" "${icons}/monos-launcher.svg"
+for px in 16 22 24 32 48 64 96 128 256 512; do
+    dir="${AIROOTFS}/usr/share/icons/hicolor/${px}x${px}/apps"
+    install -d -- "${dir}"
+    svg "${LOGO}/monos-icon-small.svg" "${px}" "${dir}/monos-small.png"
+    svg "${LOGO}/monos-launcher.svg" "${px}" "${dir}/monos-launcher.png"
+done
 for name in monos-icon monos-icon-small monos-logo monos-mark monos-wordmark; do
     install -m 0644 -- "${LOGO}/${name}.svg" "${AIROOTFS}/usr/share/monos/logo/${name}.svg"
 done
