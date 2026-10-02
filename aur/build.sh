@@ -27,6 +27,8 @@ set -euo pipefail
 # plugin, against kwin, plasma-workspace (libtaskmanager) and libplasma.
 # plasma6-applets-window-title is plain QML (no build step); makepkg still
 # wants its runtime dependency, plasma-workspace, on the build host.
+# claude-code, antigravity-ide and herdr-bin repackage upstream binaries
+# (optional AI tools, see the installer page "AI tools").
 AUR_PACKAGES=(
     ckbcomp
     calamares
@@ -38,6 +40,9 @@ AUR_PACKAGES=(
     plasma6-applets-panel-colorizer
     plasma6-applets-kara
     plasma6-applets-window-title
+    claude-code
+    antigravity-ide
+    herdr-bin
 )
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

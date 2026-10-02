@@ -270,6 +270,35 @@ distrobox
 code
 neovim
 helix
+# JavaScript/TypeScript package managers and runtimes
+pnpm
+bun
+deno
+# Language servers (Neovim, Helix, Zed and VS Code pick them up from PATH)
+pyright
+ruff
+rust-analyzer
+gopls
+typescript-language-server
+bash-language-server
+lua-language-server
+tree-sitter-cli
+# Debugging, profiling and benchmarking
+valgrind
+strace
+perf
+hyperfine
+# Code statistics, diff/merge tool, SQLite (CLI and GUI), HTTP client, git hooks
+tokei
+meld
+sqlite
+sqlitebrowser
+httpie
+pre-commit
+# AI coding agents for the terminal (bring your own account or API key)
+opencode
+gemini-cli
+openai-codex
 
 # --- CLI tools ---
 zsh
@@ -327,6 +356,17 @@ firefox
 # Markdown notes (monOS theme applied to every vault, see
 # /usr/local/bin/monos-obsidian-theme-sync)
 obsidian
+
+# --- Optional AI tools (installer page "AI tools") ---
+# Shipped on the ISO and kept on the target only when selected; see
+# /etc/calamares/modules/packagechooser_ai.conf and scripts/monos-ai-tools.sh.
+# claude-code, antigravity-ide and herdr-bin come from the local [monos]
+# repository (AUR packages built by aur/build.sh).
+ollama
+zed
+claude-code
+antigravity-ide
+herdr-bin
 
 # --- Installer (Calamares) ---
 # calamares, ckbcomp and yay-bin come from the local [monos] repository
