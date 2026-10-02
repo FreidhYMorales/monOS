@@ -27,8 +27,11 @@ set -euo pipefail
 # plugin, against kwin, plasma-workspace (libtaskmanager) and libplasma.
 # plasma6-applets-window-title is plain QML (no build step); makepkg still
 # wants its runtime dependency, plasma-workspace, on the build host.
-# claude-code, antigravity-ide and herdr-bin repackage upstream binaries
-# (optional AI tools, see the installer page "AI tools").
+# The packages after plasma6-applets-window-title are not installed on the
+# ISO; they are published with the rest by aur/publish.sh and offered by the
+# installer's netinstall groups. mongodb-bin is not built: it needs
+# mongosh-bin (AUR) installed at build time, and MongoDB is best run in a
+# container anyway.
 AUR_PACKAGES=(
     ckbcomp
     calamares
@@ -40,9 +43,16 @@ AUR_PACKAGES=(
     plasma6-applets-panel-colorizer
     plasma6-applets-kara
     plasma6-applets-window-title
+    # Not on the ISO: netinstall groups download them from the online [monos]
+    # repository (aur/publish.sh).
     claude-code
     antigravity-ide
     herdr-bin
+    flutter-bin
+    android-studio
+    postman-bin
+    bruno-bin
+    google-cloud-cli
 )
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"

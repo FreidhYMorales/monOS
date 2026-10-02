@@ -1,7 +1,10 @@
 # remove from airootfs!
 # monOS: pacman defaults in /etc/pacman.conf ([options]): 10 parallel
 # downloads, colored output, one package per line in transaction summaries
-# (VerbosePkgLists) and the Pac-Man progress bar (ILoveCandy).
+# (VerbosePkgLists) and the Pac-Man progress bar (ILoveCandy). It also adds
+# the online [monos] repository (AUR packages prebuilt by aur/build.sh and
+# published to GitHub Releases by aur/publish.sh) after [extra], so official
+# packages win on a name clash. Its packages are not signed.
 #
 # /etc/pacman.conf is owned by the pacman package, so it cannot be shipped in
 # airootfs (mkarchiso copies airootfs before pacstrap and pacman refuses to
@@ -23,4 +26,4 @@ When = PostTransaction
 Depends = sh
 Depends = sed
 Depends = grep
-Exec = /bin/sh -c '/usr/bin/sed -i -E -e "s/^#?[[:space:]]*ParallelDownloads[[:space:]]*=.*$/ParallelDownloads = 10/" -e "s/^#[[:space:]]*Color[[:space:]]*$/Color/" -e "s/^#[[:space:]]*VerbosePkgLists[[:space:]]*$/VerbosePkgLists/" /etc/pacman.conf && { /usr/bin/grep -qx "ILoveCandy" /etc/pacman.conf || /usr/bin/sed -i -e "/^Color$/a ILoveCandy" /etc/pacman.conf; }'
+Exec = /bin/sh -c '/usr/bin/sed -i -E -e "s/^#?[[:space:]]*ParallelDownloads[[:space:]]*=.*$/ParallelDownloads = 10/" -e "s/^#[[:space:]]*Color[[:space:]]*$/Color/" -e "s/^#[[:space:]]*VerbosePkgLists[[:space:]]*$/VerbosePkgLists/" /etc/pacman.conf && { /usr/bin/grep -qx "ILoveCandy" /etc/pacman.conf || /usr/bin/sed -i -e "/^Color$/a ILoveCandy" /etc/pacman.conf; } && { /usr/bin/grep -qxF "[monos]" /etc/pacman.conf || printf "\\n# monOS repository: prebuilt AUR packages (https://github.com/FreidhYMorales/monOS)\\n[monos]\\nSigLevel = Optional TrustAll\\nServer = https://github.com/FreidhYMorales/monOS/releases/download/repo\\n" >>/etc/pacman.conf; }'

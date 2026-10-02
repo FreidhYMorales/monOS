@@ -111,14 +111,39 @@ yay?" page) and adds `python` to the dependencies (the Python job modules such a
 headers are present). If the AUR package changes and the patch no longer
 applies, the script stops: update the patch.
 
-`localrepo/` and the AUR build directory are not committed. The repository will be published
-as GitHub Releases assets later.
+`localrepo/` and the AUR build directory are not committed.
 
 `build.sh` refuses to run without `localrepo/x86_64/monos.db.tar.gz`. It copies
 `localrepo/` to `/var/tmp/monos-repo` and points the `[monos]` repository of
-the staged `pacman.conf` at `file:///var/tmp/monos-repo/x86_64`. That
-repository is only used to build the ISO: the live and installed systems get
-`/etc/pacman.conf` from the `pacman` package (official repositories only).
+the staged `pacman.conf` at `file:///var/tmp/monos-repo/x86_64`. That copy is
+only used to build the ISO.
+
+#### Online `[monos]` repository
+
+The same packages are published as a pacman repository on GitHub Releases
+(release tag `repo`), so AUR tools that are too big or too niche for the ISO
+(Claude Code, Google Antigravity, herdr, Android Studio, Flutter, Postman,
+Bruno, Google Cloud CLI) are offered by the installer's netinstall groups and
+downloaded at install time:
+
+```bash
+./aur/build.sh      # build or update every package in AUR_PACKAGES
+./aur/publish.sh    # upload localrepo/x86_64 to the "repo" release (needs gh)
+```
+
+The live and installed systems get it from the `42-monos-pacman-conf` build
+hook, which appends to `/etc/pacman.conf`:
+
+```ini
+[monos]
+SigLevel = Optional TrustAll
+Server = https://github.com/FreidhYMorales/monOS/releases/download/repo
+```
+
+It comes after `[extra]`, so an official package wins on a name clash. The
+packages are not signed. Updates reach users through `pacman -Syu` after the
+next `./aur/build.sh && ./aur/publish.sh`; until then they lag behind the
+AUR.
 
 ### 2. Build and test an installation
 

@@ -1,11 +1,14 @@
-# monOS optional software groups (official Arch repositories only).
+# monOS optional software groups.
 # Groups are downloaded during the installation, so they do not take space on
-# the ISO. Every group is non-critical: a package that fails to install is
-# logged and skipped instead of aborting the installation. Only "AI" is
+# the ISO. Every group is non-critical: Calamares installs its packages one by
+# one, and a package that fails (e.g. the [monos] repository is unreachable)
+# is logged and skipped instead of aborting the installation. Only "AI" is
 # selected by default.
 #
-# Not available in the official repositories (install later with yay):
-#   - android-studio, flutter, postman, bruno, mongodb, pgadmin4 (AUR)
+# Groups marked "monOS repository" use AUR packages prebuilt by aur/build.sh
+# and published to GitHub Releases by aur/publish.sh ([monos] in
+# /etc/pacman.conf). Not available at all (install later with yay):
+#   - mongodb, pgadmin4 (AUR)
 #   - redis (replaced in the official repositories by valkey, a drop-in fork)
 - name: "AI"
   description: "AI coding agents (OpenCode, Gemini CLI, Codex), local models (Ollama) and the Zed editor"
@@ -17,6 +20,15 @@
     - openai-codex
     - ollama
     - zed
+
+- name: "AI from the AUR"
+  description: "Claude Code, Google Antigravity and herdr (monOS repository; Claude/Google account required)"
+  selected: false
+  critical: false
+  packages:
+    - claude-code
+    - antigravity-ide
+    - herdr-bin
 
 - name: "IDEs"
   description: "JetBrains IDEs (community editions)"
@@ -38,6 +50,24 @@
     - clojure
     - leiningen
     - android-tools
+
+- name: "Mobile"
+  description: "Android Studio and Flutter (monOS repository)"
+  selected: false
+  critical: false
+  packages:
+    - android-studio
+    - flutter-bin
+    - android-tools
+
+- name: "API clients"
+  description: "Postman and Bruno (monOS repository) and HTTPie"
+  selected: false
+  critical: false
+  packages:
+    - postman-bin
+    - bruno-bin
+    - httpie
 
 - name: "Data science and ML"
   description: "JupyterLab, NumPy, pandas, Matplotlib, scikit-learn, PyTorch (CPU), R and Julia"
@@ -102,7 +132,7 @@
     - raylib
 
 - name: "DevOps and cloud"
-  description: "OpenTofu, Terraform, Ansible, Kubernetes (kubectl, minikube, Helm, k9s), AWS and Azure CLIs, GitHub Actions runner (act), Trivy and Protocol Buffers"
+  description: "OpenTofu, Terraform, Ansible, Kubernetes (kubectl, minikube, Helm, k9s), AWS, Azure and Google Cloud CLIs, GitHub Actions runner (act), Trivy and Protocol Buffers"
   selected: false
   critical: false
   packages:
@@ -115,6 +145,7 @@
     - k9s
     - aws-cli-v2
     - azure-cli
+    - google-cloud-cli
     - act
     - trivy
     - protobuf
