@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es-GT">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="Presentación de monOS, un sistema operativo basado en Linux orientado a programación." />
+<title>monOS — Presentación del proyecto</title>
+<link rel="icon" type="image/png" href="images/logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+<div class="reading-progress" id="reading-progress"></div>
+<header class="site-header">
+  <a class="brand" href="#inicio"><span class="brand-mark"><img src="images/logo.png" alt="Logo de monOS" /></span><span>mon<span class="brand-accent">OS</span></span></a>
+  <nav class="desktop-nav">
+    <a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Instalación</a><a href="#equipo">Equipo</a>
+  </nav>
+  <button class="menu-toggle" id="menu-toggle" aria-expanded="false" aria-controls="mobile-nav">Menú <span>☰</span></button>
+  <div class="edition-pill"><span class="status-dot"></span> Basado en Linux · 2026</div>
+  <button class="theme-switch" id="theme-switch" aria-pressed="false" aria-label="Cambiar tema">
+    <span class="switch-track"><span class="switch-knob"></span></span><span class="switch-label">Tema oscuro</span>
+  </button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="#caracteristicas">Características</a><a href="#capturas">Capturas</a><a href="#recomendaciones">Para quién es</a><a href="#herramientas">Herramientas</a><a href="#instalacion">Instalación</a><a href="#equipo">Equipo</a>
+</nav>
+
+<main id="inicio">
+  <section class="hero section-shell">
+    <div class="hero-copy reveal">
+      <p class="eyebrow">Sistema operativo · Basado en Linux</p>
+      <h1>El sistema<br/>para <em>programar</em><span class="hero-dot">.</span></h1>
+      <p class="hero-lede">monOS es nuestra propia distribución de Linux, armada para programar: entorno ligero, herramientas listas desde el primer arranque y una terminal que no estorba.</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#caracteristicas">Ver características <span>↗</span></a>
+        <a class="button button-quiet" href="#capturas">Ver capturas</a>
+      </div>
+      <div class="hero-meta"><span><strong>Arch</strong> base</span><span><strong>Dev</strong> enfoque</span><span><strong>2026</strong> proyecto</span></div>
+    </div>
+    <div class="hero-visual reveal reveal-delay">
+      <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+      <div class="logo-stage"><img src="images/fondo-espacio.webp" alt="monOS: el mono de la mascota programando en una laptop" /></div>
+      <div class="floating-tag tag-gpu">Shell <b>zsh</b></div>
+      <div class="floating-tag tag-cpu">Base <b>Arch Linux</b></div>
+      <div class="floating-tag tag-ssd">Escritorio <b>KDE Plasma</b></div>
+      <div class="hero-cross cross-a">+</div><div class="hero-cross cross-b">+</div>
+    </div>
+  </section>
+
+  <section class="index-section section-shell" id="caracteristicas">
+    <div class="section-heading reveal">
+      <div><p class="eyebrow">01 / Índice de características</p><h2>Explora por<br/><em>módulo</em></h2></div>
+      <p class="section-note">Un repaso por las piezas que arman monOS, cada una con sus capturas.</p>
+    </div>
+    <div class="category-rail" id="category-rail"></div>
+  </section>
+
+  <section class="catalog-section section-shell" id="capturas">
+    <div class="catalog-top reveal">
+      <div><p class="eyebrow">02 / Capturas y funciones</p><h2>monOS,<br/><em>en acción.</em></h2></div>
+      <div class="catalog-tools">
+        <label class="search-box"><span>⌕</span><input id="search" type="search" placeholder="Buscar función, módulo o herramienta…" /></label>
+        <div class="filter-row" id="filters"></div>
+      </div>
+    </div>
+    <div class="catalog-status"><span id="count">Mostrando módulos</span><span>Haz clic en una captura para verla en grande</span></div>
+    <div class="component-list" id="component-list"></div>
+  </section>
+
+  <section class="recommendations-section section-shell" id="recomendaciones">
+    <div class="section-heading reveal">
+      <div><p class="eyebrow">03 / ¿Para quién es?</p><h2>Casos de<br/><em>uso.</em></h2></div>
+      <p class="section-note">Perfiles de usuario a los que les puede servir monOS.</p>
+    </div>
+    <div class="recommendation-grid" id="recommendation-grid"></div>
+  </section>
+
+  <section class="guatemala-section section-shell" id="instalacion">
+    <div class="guatemala-intro reveal">
+      <p class="eyebrow">04 / Consíguelo</p><h2>Descarga<br/>e <em>instala.</em></h2>
+      <p>Aquí irán los enlaces reales de descarga, repositorio y documentación cuando estén listos.</p>
+    </div>
+    <div class="store-grid">
+      <article class="store-card reveal"><span class="store-number">01</span><h3>Sitio oficial</h3><p>Página del proyecto con la ISO y guía de instalación.</p><div><span class="pending-badge">Próximamente</span><a href="#">Visitar sitio ↗</a></div></article>
+      <article class="store-card reveal reveal-delay"><span class="store-number">02</span><h3>Repositorio</h3><p>Código fuente, scripts de build y lista de paquetes.</p><div><span class="pending-badge">Próximamente</span><a href="#">Ver repositorio ↗</a></div></article>
+      <article class="store-card reveal"><span class="store-number">03</span><h3>Comunidad</h3><p>Dudas, soporte y seguimiento del desarrollo.</p><div><span class="pending-badge">Próximamente</span><a href="#">Unirse ↗</a></div></article>
+    </div>
+    <p class="source-note">Nota: los enlaces y la versión descargable se agregan en cuanto estén listos.</p>
+  </section>
+
+  <section class="featured-section section-shell">
+    <div class="section-heading reveal">
+      <div><p class="eyebrow">05 / Lo más destacado</p><h2>Lo que<br/><em>más nos gusta.</em></h2></div>
+      <p class="section-note">Las tres cosas que más queremos mostrar de monOS.</p>
+    </div>
+    <div class="featured-grid" id="featured-grid"></div>
+  </section>
+
+  <section class="software-section section-shell" id="herramientas">
+    <div class="section-heading reveal">
+      <div><p class="eyebrow">06 / Lo que trae por dentro</p><h2>Herramientas<br/><em>incluidas.</em></h2></div>
+      <p class="section-note">El software que ya viene listo para programar apenas instalas monOS.</p>
+    </div>
+    <div class="software-grid" id="software-grid"></div>
+  </section>
+
+  <section class="lesson-section section-shell">
+    <div class="lesson-card reveal">
+      <div><p class="eyebrow">07 / Por qué lo hicimos</p><h2>¿Por qué<br/><em>monOS?</em></h2></div>
+      <div class="lesson-copy">
+        <p>Construir un sistema operativo es entender cómo encajan sus piezas: el kernel, el entorno gráfico, las herramientas de desarrollo y la forma en que todo arranca junto.</p>
+        <p>monOS es nuestro intento de armar ese sistema pensando primero en quien programa.</p>
+        <a href="#caracteristicas" class="text-link">Volver a explorar <span>↗</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="creators-section section-shell" id="equipo">
+    <div class="creators-heading reveal">
+      <p class="eyebrow">08 / Proyecto académico</p><h2>Creadores<br/><em>de monOS.</em></h2>
+      <p>Espacios listos para personalizar con la información del equipo.</p>
+    </div>
+    <div class="creator-grid">
+      <article class="creator-card reveal"><div class="creator-avatar">01</div><div class="creator-info"><span>CREADOR 01</span><h3>Nombre del estudiante</h3><p>♧ Carné: XXXXXXXX</p><p>⌁ Carrera: XXXXXXXX</p><p>⌂ Universidad: XXXXXXXX</p></div></article>
+      <article class="creator-card reveal reveal-delay"><div class="creator-avatar">02</div><div class="creator-info"><span>CREADOR 02</span><h3>Nombre del estudiante</h3><p>♧ Carné: XXXXXXXX</p><p>⌁ Carrera: XXXXXXXX</p><p>⌂ Universidad: XXXXXXXX</p></div></article>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-brand"><a class="brand" href="#inicio"><span class="brand-mark"><img src="images/logo.png" alt="Logo de monOS" /></span><span>mon<span class="brand-accent">OS</span></span></a><p>Sistema Operativo basado en Linux, orientado a programación</p></div>
+  <div class="footer-meta"><span>Proyecto académico · 2026</span><span>Contenido pendiente de completar</span></div>
+</footer>
+<button class="to-top" id="to-top" aria-label="Volver al inicio">↑</button>
+
+<script src="js/app.js"></script>
+</body>
+</html>
