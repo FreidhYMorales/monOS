@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>monOS — Propuesta de valor</title>
+<style>
+  @page { size: Letter; margin: 16mm 16mm 16mm 16mm; }
+  :root {
+    --bg: #0B0D12; --blue: #0C6BFA; --violet: #7C3AED;
+    --ink: #161A22; --dim: #4A5263; --line: #DDE2EA; --soft: #F3F6FB;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Noto Sans", sans-serif; color: var(--ink); font-size: 10.5pt; line-height: 1.45; }
+  .cover {
+    background: linear-gradient(135deg, var(--bg) 0%, #121a35 55%, #2a1650 100%);
+    color: #FCFCFC; border-radius: 10px; padding: 22px 26px; display: flex; align-items: center; gap: 22px;
+  }
+  .cover img { width: 92px; height: 92px; }
+  .cover h1 { margin: 0; font-size: 26pt; letter-spacing: .5px; }
+  .cover p { margin: 4px 0 0; color: #C9D2E3; font-size: 11pt; }
+  .tag { display: inline-block; margin-top: 10px; font-size: 8.5pt; color: #fff; background: rgba(12,107,250,.35);
+         border: 1px solid rgba(12,107,250,.8); border-radius: 999px; padding: 2px 10px; margin-right: 6px; }
+  h2 { font-size: 14pt; margin: 22px 0 8px; padding-bottom: 4px; border-bottom: 2px solid var(--blue); }
+  h2 .n { color: var(--blue); margin-right: 6px; }
+  h3 { font-size: 10.5pt; margin: 0 0 3px; color: var(--ink); }
+  .lead { color: var(--dim); margin: 6px 0 0; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .card { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 6px; padding: 8px 11px; break-inside: avoid; }
+  .card.v { border-left-color: var(--violet); }
+  .card p { margin: 0; color: var(--dim); font-size: 9.5pt; }
+  .swatches { display: flex; gap: 8px; margin: 8px 0 10px; }
+  .sw { flex: 1; border-radius: 6px; height: 34px; display: flex; align-items: flex-end; padding: 3px 6px; font-size: 7.5pt; color: #fff; font-family: monospace; }
+  .cat { column-count: 2; column-gap: 22px; }
+  .group { break-inside: avoid; margin-bottom: 10px; }
+  .group h3 { color: var(--blue); font-size: 10pt; border-bottom: 1px solid var(--line); padding-bottom: 2px; margin-bottom: 4px; }
+  .group ul { margin: 0; padding-left: 15px; font-size: 9.3pt; }
+  .group li { margin: 1px 0; }
+  .pb { break-before: page; }
+  code { font-family: monospace; font-size: 9pt; background: #E9EEF6; padding: 0 3px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <img src="monos-icon.svg" alt="">
+  <div>
+    <h1>monOS</h1>
+    <p>Distribución Linux basada en Arch, enfocada en programación y desarrollo de software.</p>
+    <span class="tag">Arch Linux</span><span class="tag">KDE Plasma 6 · Wayland</span><span class="tag">Live USB + instalador</span>
+  </div>
+</div>
+
+<h2><span class="n">01</span>Propuesta de valor</h2>
+<p class="lead">monOS entrega un entorno de desarrollo completo y listo desde el primer arranque: se prueba desde una USB sin instalar nada,
+se instala con un asistente gráfico y queda configurado con herramientas, temas y optimizaciones pensadas para programar,
+sin horas de configuración manual. Mantiene la base rolling de Arch (software siempre actualizado y acceso al AUR)
+y le agrega una identidad visual propia: monos, galaxias y tecnología.</p>
+
+<h2><span class="n">02</span>Novedades</h2>
+<div class="grid">
+  <div class="card"><h3>Live USB e instalador gráfico</h3><p>Se prueba el sistema completo desde la USB y se instala con Calamares, al estilo de Fedora. El usuario se crea durante la instalación.</p></div>
+  <div class="card"><h3>Instalación consciente del hardware</h3><p>Detecta GPU NVIDIA, CPU Intel y máquinas virtuales, y conserva solo los drivers y servicios que el equipo necesita.</p></div>
+  <div class="card"><h3>Btrfs con snapshots</h3><p>Subvolúmenes separados, snapshots automáticos con Snapper antes de cada actualización y arranque de snapshots desde GRUB.</p></div>
+  <div class="card"><h3>Dos kernels</h3><p>Kernel <code>linux</code> por defecto y <code>linux-lts</code> como respaldo seleccionable en GRUB.</p></div>
+  <div class="card"><h3>Listo para desarrollar</h3><p>Lenguajes, compiladores, servidores de lenguaje, Docker, Podman y distrobox instalados y configurados desde el primer arranque.</p></div>
+  <div class="card"><h3>Agentes de IA</h3><p>OpenCode, Gemini CLI, Codex, Ollama y Zed marcados por defecto en el instalador; Claude Code, Google Antigravity y herdr como opción.</p></div>
+  <div class="card"><h3>Software por área, sin inflar la ISO</h3><p>17 grupos opcionales que se descargan durante la instalación: IA, móvil, JVM, ciencia de datos, embebidos, juegos, DevOps, bases de datos y más.</p></div>
+  <div class="card"><h3>Repositorio propio de monOS</h3><p>Paquetes del AUR ya compilados y publicados en GitHub: se instalan con pacman sin compilar nada. Además, yay opcional para todo el AUR.</p></div>
+  <div class="card"><h3>Tiling opcional</h3><p>Ventanas en mosaico con Krohnkite, activables y desactivables con <code>Meta+Shift+T</code>.</p></div>
+  <div class="card"><h3>Optimizaciones de sistema</h3><p>zram, arranque más rápido, mirrors actualizados semanalmente (reflector), descargas paralelas en pacman y firewall activo.</p></div>
+  <div class="card"><h3>Flathub integrado</h3><p>Flatpak y Discover con Flathub para instalar apps gráficas sin tocar la terminal.</p></div>
+  <div class="card"><h3>Integración con el teléfono</h3><p>KDE Connect con los puertos del firewall ya abiertos.</p></div>
+</div>
+
+<h2><span class="n">03</span>Personalización visual</h2>
+<p class="lead" style="margin-bottom:0">Una sola paleta de marca genera automáticamente los colores de todo el sistema, del arranque al editor.</p>
+<div class="swatches">
+  <div class="sw" style="background:#0B0D12">#0B0D12</div>
+  <div class="sw" style="background:#0C6BFA">#0C6BFA</div>
+  <div class="sw" style="background:#7C3AED">#7C3AED</div>
+  <div class="sw" style="background:#4C4D4F">#4C4D4F</div>
+  <div class="sw" style="background:#FCFCFC;color:#161A22;border:1px solid #DDE2EA">#FCFCFC</div>
+</div>
+<div class="grid">
+  <div class="card v"><h3>Temas oscuro y claro</h3><p>Dos temas globales de Plasma: monOS y monOS Light.</p></div>
+  <div class="card v"><h3>Escritorio en islas</h3><p>Barra superior flotante con islas redondeadas (lanzador, escritorios virtuales en forma de píldora, título de ventana, reloj, CPU/RAM y bandeja) y dock inferior que se oculta al acercar una ventana.</p></div>
+  <div class="card v"><h3>Arranque con marca propia</h3><p>Tema propio en GRUB, Plymouth (pantalla de carga) y SDDM (inicio de sesión).</p></div>
+  <div class="card v"><h3>Estilo de ventanas e íconos</h3><p>Klassy para estilo y decoraciones, íconos monocromáticos Yamis y cursor Bibata.</p></div>
+  <div class="card v"><h3>11 fondos de pantalla</h3><p>Orbit, Nebula, Daylight, Astronaut (claro/oscuro), Morning, Focus, Sketch, Spacewalk, Evolution, Matrix y Blueprint.</p></div>
+  <div class="card v"><h3>Terminal y editores con el tema</h3><p>kitty, foot, Neovim, Vim, Helix, VS Code, Obsidian, btop, yazi, lazygit, zellij, bat, starship y fastfetch con los colores de monOS. Fuente JetBrains Mono Nerd Font.</p></div>
+</div>
+
+<h2><span class="n">04</span>Catálogo de herramientas preinstaladas</h2>
+<div class="cat">
+  <div class="group"><h3>Lenguajes y compiladores</h3><ul>
+    <li>GCC, Clang, Make, CMake (base-devel)</li><li>Python, pip, uv</li><li>Node.js, npm, pnpm</li><li>Bun, Deno</li><li>Java 21 (OpenJDK)</li><li>Go</li><li>Rust (rustup)</li><li>mise (gestor de versiones)</li>
+  </ul></div>
+  <div class="group"><h3>Editores e IDE</h3><ul>
+    <li>Visual Studio Code (Code - OSS)</li><li>Neovim</li><li>Helix</li><li>Vim</li><li>Kate</li>
+  </ul></div>
+  <div class="group"><h3>Servidores de lenguaje (LSP)</h3><ul>
+    <li>Pyright, Ruff (Python)</li><li>rust-analyzer (Rust)</li><li>gopls (Go)</li><li>TypeScript / JavaScript</li><li>Bash, Lua</li><li>tree-sitter CLI</li>
+  </ul></div>
+  <div class="group"><h3>Control de versiones</h3><ul>
+    <li>Git, Git LFS</li><li>GitHub CLI (gh)</li><li>lazygit</li><li>git-delta</li>
+  </ul></div>
+  <div class="group"><h3>Contenedores</h3><ul>
+    <li>Docker, Docker Compose</li><li>Podman</li><li>distrobox</li><li>lazydocker</li>
+  </ul></div>
+  <div class="group"><h3>Depuración y calidad</h3><ul>
+    <li>GDB, Valgrind, strace, perf</li><li>hyperfine (benchmarks)</li><li>ShellCheck, pre-commit</li><li>just (task runner), direnv</li><li>tokei (estadísticas de código)</li><li>Meld (diff y merge)</li>
+  </ul></div>
+  <div class="group"><h3>Terminal y shell</h3><ul>
+    <li>kitty (predeterminada), foot</li><li>Zsh con autosugerencias, resaltado y completado</li><li>Starship (prompt)</li><li>Zellij, tmux</li><li>Atuin (historial)</li>
+  </ul></div>
+  <div class="group"><h3>Utilidades de línea de comandos</h3><ul>
+    <li>eza, bat, ripgrep, fd, fzf, zoxide</li><li>yazi (gestor de archivos)</li><li>btop, dust, duf, ncdu</li><li>jq, xh, HTTPie, curl, wget</li><li>SQLite + DB Browser for SQLite</li><li>tealdeer, glow, hexyl, ouch</li><li>fastfetch</li>
+  </ul></div>
+  <div class="group"><h3>Aplicaciones</h3><ul>
+    <li>Firefox</li><li>Obsidian</li><li>Dolphin (con terminal integrada, F4)</li><li>Okular, Gwenview, Haruna, mpv</li><li>Spectacle, Ark, KCalc, Filelight</li><li>KDE Connect</li>
+  </ul></div>
+  <div class="group"><h3>Sistema</h3><ul>
+    <li>Discover + Flatpak (Flathub)</li><li>yay (AUR, opcional)</li><li>Btrfs Assistant, Snapper</li><li>KDE Partition Manager</li><li>Firewall (ufw), CUPS (impresión)</li><li>fwupd (firmware)</li>
+  </ul></div>
+</div>
+
+<h2><span class="n">05</span>Software opcional en el instalador</h2>
+<p class="lead" style="margin-bottom:8px">Se elige durante la instalación y se descarga en ese momento (requiere internet), por lo que no ocupa espacio en la ISO. Los marcados con * vienen del repositorio propio de monOS.</p>
+<div class="cat">
+  <div class="group"><h3>IA (marcado por defecto)</h3><ul><li>OpenCode, Gemini CLI, OpenAI Codex CLI</li><li>Ollama (modelos locales)</li><li>Zed</li></ul></div>
+  <div class="group"><h3>IA desde el AUR *</h3><ul><li>Claude Code</li><li>Google Antigravity</li><li>herdr</li></ul></div>
+  <div class="group"><h3>IDEs</h3><ul><li>IntelliJ IDEA CE, PyCharm CE</li></ul></div>
+  <div class="group"><h3>Móvil *</h3><ul><li>Android Studio</li><li>Flutter</li><li>android-tools (adb, fastboot)</li></ul></div>
+  <div class="group"><h3>Clientes de API *</h3><ul><li>Postman, Bruno</li><li>HTTPie</li></ul></div>
+  <div class="group"><h3>JVM y Android</h3><ul><li>Kotlin, Gradle, Maven</li><li>Scala (sbt), Clojure, Leiningen</li><li>android-tools (adb, fastboot)</li></ul></div>
+  <div class="group"><h3>Ciencia de datos y ML</h3><ul><li>JupyterLab</li><li>NumPy, pandas, Matplotlib, scikit-learn</li><li>PyTorch (CPU)</li><li>R, Julia</li></ul></div>
+  <div class="group"><h3>Más lenguajes</h3><ul><li>Zig, Lua, Nim, Crystal, Dart</li><li>Elixir y Erlang</li><li>Haskell (GHC, Cabal, Stack)</li><li>OCaml y opam, Common Lisp (SBCL), Fortran</li><li>.NET, PHP (Composer), Ruby</li></ul></div>
+  <div class="group"><h3>Embebidos e IoT</h3><ul><li>Arduino CLI, PlatformIO</li><li>AVR-GCC, ARM GCC (Cortex-M)</li><li>OpenOCD, picocom</li></ul></div>
+  <div class="group"><h3>Juegos y 3D</h3><ul><li>Godot, Blender</li><li>SDL3, raylib</li></ul></div>
+  <div class="group"><h3>DevOps y nube</h3><ul><li>OpenTofu, Terraform, Ansible</li><li>kubectl, minikube, Helm, k9s</li><li>AWS CLI, Azure CLI, Google Cloud CLI *</li><li>act, Trivy, protobuf, buf</li></ul></div>
+  <div class="group"><h3>Bases de datos</h3><ul><li>PostgreSQL, MariaDB, Valkey</li><li>DBeaver, MySQL Workbench</li></ul></div>
+  <div class="group"><h3>Redes</h3><ul><li>Wireshark, mitmproxy</li></ul></div>
+  <div class="group"><h3>Virtualización</h3><ul><li>QEMU/KVM, libvirt, virt-manager</li></ul></div>
+  <div class="group"><h3>Documentación</h3><ul><li>Pandoc, Typst, mdBook</li><li>Graphviz, PlantUML</li></ul></div>
+  <div class="group"><h3>Diseño y multimedia</h3><ul><li>Inkscape, Krita, GIMP, OBS Studio</li></ul></div>
+  <div class="group"><h3>Ofimática</h3><ul><li>LibreOffice</li></ul></div>
+</div>
+
+</body>
+</html>

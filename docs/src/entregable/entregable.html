@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>monOS — Entregable</title>
+<style>
+  @page { size: Letter; margin: 14mm 15mm; }
+  :root { --bg:#0B0D12; --blue:#0C6BFA; --violet:#7C3AED; --ink:#161A22; --dim:#4A5263; --line:#DDE2EA; --soft:#F3F6FB; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:"Noto Sans", sans-serif; color:var(--ink); font-size:9.8pt; line-height:1.42; }
+  .cover { background:linear-gradient(135deg,var(--bg) 0%,#121a35 55%,#2a1650 100%); color:#FCFCFC; border-radius:10px; padding:16px 22px; display:flex; align-items:center; gap:18px; }
+  .cover img { width:74px; height:74px; }
+  .cover h1 { margin:0; font-size:23pt; }
+  .cover p { margin:2px 0 0; color:#C9D2E3; font-size:9.5pt; }
+  .team { font-size:8.3pt; color:#C9D2E3; margin-top:6px; line-height:1.35; }
+  h2 { font-size:12.5pt; margin:14px 0 6px; padding-bottom:3px; border-bottom:2px solid var(--blue); }
+  h2 .n { color:var(--blue); margin-right:6px; }
+  h3 { font-size:10pt; margin:8px 0 3px; }
+  p { margin:4px 0; }
+  .links { display:grid; grid-template-columns:auto 1fr; gap:4px 14px; background:var(--soft); border:1px solid var(--line); border-left:3px solid var(--blue); border-radius:6px; padding:9px 12px; }
+  .links b { white-space:nowrap; }
+  .links a { color:var(--blue); word-break:break-all; text-decoration:none; }
+  ul { margin:3px 0; padding-left:16px; }
+  li { margin:1.5px 0; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  ol { margin:3px 0; padding-left:18px; }
+  ol li { margin:3px 0; }
+  code { font-family:monospace; font-size:8.6pt; background:#E9EEF6; padding:0 3px; border-radius:3px; }
+  .note { background:#FFF7E6; border:1px solid #F5C451; border-radius:6px; padding:7px 10px; font-size:9pt; margin:6px 0; }
+  figure { margin:0; break-inside:avoid; }
+  figure img { width:100%; border:1px solid var(--line); border-radius:6px; display:block; }
+  figcaption { font-size:8.3pt; color:var(--dim); margin-top:3px; text-align:center; }
+  .shots { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .shots .wide { grid-column:1 / 3; }
+  .pb { break-before:page; }
+  .title-page { height:248mm; position:relative; break-after:page; font-size:11.5pt; }
+  .tp-head { display:flex; justify-content:space-between; align-items:flex-start; padding-top:8mm; }
+  .tp-inst p { margin:0 0 2.6mm; }
+  .tp-inst p.first { margin-bottom:5mm; }
+  .tp-head img { width:42mm; height:42mm; }
+  .tp-title { position:absolute; top:88mm; left:0; right:0; text-align:center; }
+  .tp-title img { width:22mm; height:22mm; margin-bottom:5mm; }
+  .tp-title h1 { font-size:24pt; font-weight:800; line-height:1.3; margin:0; text-transform:uppercase; }
+  .tp-team { position:absolute; top:182mm; left:0; }
+  .tp-team p { margin:0 0 4mm; }
+  .tp-foot { position:absolute; bottom:0; left:0; right:0; text-align:center; }
+</style>
+</head>
+<body>
+
+<section class="title-page">
+  <div class="tp-head">
+    <div class="tp-inst">
+      <p class="first">Universidad Mariano Gálvez de Guatemala</p>
+      <p>Campus Huehuetenango</p>
+      <p>Facultad de Ingeniería en Sistemas</p>
+      <p>Curso: Sistemas Operativos Año: 2026</p>
+      <p>Plan: Diario</p>
+    </div>
+    <img src="umg.png" alt="Universidad Mariano Gálvez de Guatemala">
+  </div>
+  <div class="tp-title">
+    <img src="monos-icon.svg" alt="">
+    <h1><span style="text-transform:none">monOS</span>: distribución Linux<br>para programación y<br>desarrollo de software</h1>
+  </div>
+  <div class="tp-team">
+    <p>Cristian Antonio Mendoza Mendoza 4490-24-10243</p>
+    <p>Walter Emanuel Figueroa Vásquez 4490-24-18866</p>
+    <p>Freidh Yannel Morales Gonzalez 4490-24-12438</p>
+    <p>Francisco David Diego Noriega 4490-24-2092</p>
+  </div>
+  <div class="tp-foot">Huehuetenango, Guatemala 2026</div>
+</section>
+
+<div class="cover">
+  <img src="monos-icon.svg" alt="">
+  <div>
+    <h1>monOS</h1>
+    <p>Distribución Linux basada en Arch, enfocada en programación y desarrollo de software.</p>
+    <div class="team">Universidad Mariano Gálvez de Guatemala · Sistemas Operativos · Octubre 2026</div>
+  </div>
+</div>
+
+<h2><span class="n">01</span>Enlaces</h2>
+<div class="links">
+  <b>Sitio web oficial</b><a href="https://monos-os.vercel.app">https://monos-os.vercel.app</a>
+  <b>ISO (Google Drive, público)</b><a href="https://drive.google.com/drive/folders/1nUSszLPcizV07Xjbe--AbGI46P8qUbDi?usp=sharing">https://drive.google.com/drive/folders/1nUSszLPcizV07Xjbe--AbGI46P8qUbDi?usp=sharing</a>
+  <b>Presentación / video</b><a href="https://canva.link/wpiagjtaslqzh9e">https://canva.link/wpiagjtaslqzh9e</a>
+  <b>Código fuente</b><a href="https://github.com/FreidhYMorales/monOS">https://github.com/FreidhYMorales/monOS</a>
+</div>
+
+<h2><span class="n">02</span>Informe técnico</h2>
+
+<h3>Nombre y logotipo</h3>
+<p><b>monOS</b> (de <i>mono</i> + <i>OS</i>). El logotipo es un mono programando en una laptop; la identidad combina monos, galaxias y tecnología con una paleta fija (azul <code>#0C6BFA</code>, violeta <code>#7C3AED</code>, fondo <code>#0B0D12</code>) aplicada a todo el sistema: GRUB, pantalla de carga, login, escritorio, terminal y editores.</p>
+
+<h3>Distribución base</h3>
+<p><b>Arch Linux</b> (modelo <i>rolling release</i>: software siempre actualizado y acceso al AUR). Kernel <code>linux</code> 7.2 con <code>linux-lts</code> como respaldo, escritorio <b>KDE Plasma 6.7.5</b> sobre Wayland, sistema de archivos <b>Btrfs</b> con snapshots automáticos (Snapper) y la imagen ISO construida con <b>archiso</b>, la herramienta oficial de Arch.</p>
+
+<h3>Paquetes clave instalados</h3>
+<div class="two">
+  <ul>
+    <li><b>Escritorio:</b> KDE Plasma 6, SDDM, Dolphin, Discover + Flatpak, temas propios (Klassy, íconos Yamis, cursor Bibata), tiling con Krohnkite.</li>
+    <li><b>Instalador:</b> Calamares 3.4 (live USB con instalación gráfica), yay opcional para el AUR.</li>
+    <li><b>Sistema:</b> NetworkManager, PipeWire, firewall ufw, zram, Snapper + grub-btrfs, drivers Intel, AMD y NVIDIA (abierto).</li>
+  </ul>
+  <ul>
+    <li><b>Lenguajes:</b> GCC, Clang, CMake, Python (uv), Node.js, Bun, Deno, Java 21, Go, Rust.</li>
+    <li><b>Desarrollo:</b> Code - OSS, Neovim, Helix, Git, GitHub CLI, Docker, Podman, distrobox, servidores de lenguaje (LSP).</li>
+    <li><b>Terminal:</b> kitty, zsh + Starship, zellij, tmux, yazi, btop, fastfetch, ripgrep, fd, fzf.</li>
+    <li><b>Opcional al instalar (17 grupos):</b> IA, móvil, ciencia de datos, DevOps, bases de datos, embebidos y más.</li>
+  </ul>
+</div>
+
+<h3>Compilación de la ISO</h3>
+<div class="note"><b>Nota sobre Systemback:</b> Systemback solo funciona en distribuciones basadas en Debian/Ubuntu y no recibe mantenimiento desde 2016, por lo que no es compatible con Arch Linux. Para una base Arch, la herramienta equivalente (y oficial) es <b>archiso</b>, que cumple la misma función: generar una ISO en vivo e instalable a partir de un sistema configurado. Los pasos realizados fueron:</div>
+<ol>
+  <li><b>Perfil base:</b> se partió del perfil <code>releng</code> de archiso (el de la ISO oficial de Arch) y se adaptó como perfil propio (<code>profile/</code>).</li>
+  <li><b>Lista de paquetes:</b> se definieron los paquetes de la distribución en <code>packages.x86_64</code> (escritorio, herramientas de desarrollo, drivers, instalador).</li>
+  <li><b>Paquetes del AUR:</b> los que no están en los repositorios oficiales (Calamares, temas, widgets, yay) se compilaron con <code>aur/build.sh</code> en un repositorio local de pacman.</li>
+  <li><b>Personalización:</b> la carpeta <code>airootfs/</code> agrega la configuración que se copia al sistema (temas, fondos, zsh, kitty, Calamares, servicios). Los colores de todos los temas se generan desde una sola paleta con <code>gen-themes.py</code>.</li>
+  <li><b>Construcción:</b> <code>sudo ./build.sh</code> ejecuta <code>mkarchiso</code>, que instala los paquetes en un sistema raíz, lo comprime en SquashFS y genera la ISO arrancable en UEFI y BIOS (~5.2 GB).</li>
+  <li><b>Pruebas:</b> se probó en máquinas virtuales QEMU (<code>./test.sh</code>), en modo en vivo e instalado, y luego en hardware real desde una USB.</li>
+  <li><b>Publicación:</b> la ISO se subió a Google Drive con acceso público y el sitio web se publicó en Vercel.</li>
+</ol>
+
+<h3>Capturas de la distribución en ejecución</h3>
+<div class="shots">
+  <figure class="wide"><img src="escritorio.jpg" alt=""><figcaption>Escritorio: barra superior con islas, dock inferior y fondo de monOS.</figcaption></figure>
+  <figure><img src="launcher.jpg" alt=""><figcaption>Menú de aplicaciones.</figcaption></figure>
+  <figure><img src="fastfetch.jpg" alt=""><figcaption>Terminal kitty con fastfetch.</figcaption></figure>
+</div>
+
+</body>
+</html>
